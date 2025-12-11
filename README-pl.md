@@ -57,6 +57,7 @@ pip install matplotlib networkx pytest
 
 ```
 GG_proj/
+├── .pre-commit-config.yaml           # Definicje pre-push hooka
 ├── LICENSE                           # Licencja projektu
 ├── README.md                         # README (wersja angielska)
 ├── README-pl.md                      # Ten plik (wersja polska)
