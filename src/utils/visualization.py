@@ -59,7 +59,7 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
             if obj.label == "Q":
                 colors.append("#ff9999")  # Czerwony dla wnętrza
                 sizes.append(600)
-                # Wyświetlamy ID oraz flagę R [cite: 236]
+                # Wyświetlamy ID oraz flagę R
                 labels[node_id] = f"Q\nR={obj.r}"
             elif obj.label == "E":
                 colors.append("#99ff99")  # Zielony dla krawędzi
