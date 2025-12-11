@@ -96,7 +96,11 @@ if __name__ == "__main__":
 
     # 1. Inicjalizacja siatki 2x2
     graph = get_2x2_grid_graph()
-    visualize_graph(graph, "Siatka 2x2 - Stan Poczatkowy", filename="grid_initial.png")
+    visualize_graph(
+        graph,
+        "Siatka 2x2 - Stan Poczatkowy",
+        filepath="tests/test_p0/a/grid_initial.png",
+    )
 
     # 2. Wykonanie Produkcji P0 na lewym górnym elemencie (Q3)
     # Zgodnie z obrazkiem, chcemy oznaczyć jeden konkretny element.
@@ -107,6 +111,8 @@ if __name__ == "__main__":
 
     # 3. Wizualizacja wyniku
     # Spodziewany efekt: Q3 ma R=1, reszta (Q1, Q2, Q4) ma R=0
-    visualize_graph(graph, "Siatka 2x2 - Po P0 na Q3", filename="grid_after_p0.png")
+    visualize_graph(
+        graph, "Siatka 2x2 - Po P0 na Q3", filepath="tests/test_p0/a/grid_after_p0.png"
+    )
 
     print("\n=== KONIEC SYMULACJI ===")

@@ -1,3 +1,4 @@
+import os
 import networkx as nx
 import matplotlib.pyplot as plt
 
@@ -5,7 +6,7 @@ from ..graph import Graph
 from ..elements import Vertex, Hyperedge
 
 
-def visualize_graph(graph: Graph, title: str, filename: str = None):
+def visualize_graph(graph: Graph, title: str, filepath: str = None):
     """
     Wizualizuje obiekt klasy model.graph.Graph.
     Oblicza pozycje węzłów logicznych (Q, E) na podstawie sąsiadujących wierzchołków.
@@ -85,9 +86,21 @@ def visualize_graph(graph: Graph, title: str, filename: str = None):
 
     plt.title(title)
 
-    if filename:
-        plt.savefig(filename)
-        print(f"Zapisano wizualizację do pliku: {filename}")
+    if filepath:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.abspath(os.path.join(current_dir, "..", ".."))
+
+        output_dir = os.path.join(project_root, "visualizations")
+        os.makedirs(output_dir, exist_ok=True)
+
+        dir_only, filename_only = os.path.split(filepath)
+        if dir_only:
+            output_dir = os.path.join(output_dir, dir_only)
+            os.makedirs(output_dir, exist_ok=True)
+        filepath = os.path.join(output_dir, filename_only)
+
+        plt.savefig(filepath)
+        print(f"Zapisano wizualizację do pliku: {filepath}")
         plt.close()
     else:
         plt.show()

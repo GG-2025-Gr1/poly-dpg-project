@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     # 1. Inicjalizacja
     graph = get_initial_graph()
-    visualize_graph(graph, "Stan poczatkowy (R=0)", filename="step_0_init.png")
+    visualize_graph(graph, "Stan poczatkowy (R=0)", filepath="step_0_init.png")
 
     # 2. Wykonanie Produkcji P0
     # Decyzja: chcemy podzielić element 'Q1'
@@ -72,6 +72,6 @@ if __name__ == "__main__":
 
     # 3. Wizualizacja wyniku
     # Oczekujemy, że w pliku png przy Q zobaczymy R=1
-    visualize_graph(graph, "Po produkcji P0 (R=1)", filename="step_1_after_p0.png")
+    visualize_graph(graph, "Po produkcji P0 (R=1)", filepath="step_1_after_p0.png")
 
     print("\n=== KONIEC SYMULACJI ===")

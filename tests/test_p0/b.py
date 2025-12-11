@@ -64,7 +64,9 @@ if __name__ == "__main__":
 
     # Wizualizacja powinna umieścić czerwone Q idealnie w środku okręgu
     visualize_graph(
-        graph, "Szesciokat jako Q - Przed P0", filename="test_hex_Q_init.png"
+        graph,
+        "Szesciokat jako Q - Przed P0",
+        filepath="tests/test_p0/b/test_hex_Q_init.png",
     )
 
     # 2. Wykonanie Produkcji P0
@@ -77,7 +79,9 @@ if __name__ == "__main__":
     # 3. Wynik
     # Oczekujemy, że czerwone Q w środku sześciokąta zmieni opis na R=1
     visualize_graph(
-        graph, "Szesciokat jako Q - Po P0", filename="test_hex_Q_result.png"
+        graph,
+        "Szesciokat jako Q - Po P0",
+        filepath="tests/test_p0/b/test_hex_Q_result.png",
     )
 
     print("\n=== KONIEC TESTU ===")
