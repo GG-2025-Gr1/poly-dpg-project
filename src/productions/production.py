@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Any
-from graph import Graph  # Importujemy Twoją klasę Graph, nie networkx bezpośrednio
+
+from ..graph import Graph
+
 
 class Production(ABC):
     """
@@ -13,20 +15,22 @@ class Production(ABC):
         Metoda szablonowa.
         Przyjmuje *args i **kwargs, aby przekazać np. target_id do P0.
         """
-        
+
         # 1. Znajdź wszystkie wystąpienia lewej strony (LHS)
         matches = self.find_lhs(graph, *args, **kwargs)
-        
+
         if not matches:
             # To nie jest błąd - po prostu brak dopasowań w tej chwili
             return graph
 
-        print(f"[{self.__class__.__name__}] Znaleziono {len(matches)} dopasowań. Aplikuję RHS.")
+        print(
+            f"[{self.__class__.__name__}] Znaleziono {len(matches)} dopasowań. Aplikuję RHS."
+        )
 
         # 2. Dla każdego dopasowania zastosuj prawą stronę (RHS)
         for match in matches:
             self.apply_rhs(graph, match)
-            
+
         return graph
 
     @abstractmethod
