@@ -66,9 +66,8 @@ if __name__ == "__main__":
     # Decyzja: chcemy podzielić element 'Q1'
     p0 = ProductionP0()
 
-    print("\n--- Aplikacja P0 na elemencie Q1 ---")
-    # Ważne: przekazujemy target_id='Q1', bo P0 jest selektywne
-    graph = p0.apply(graph, target_id="Q1")
+    print("\n--- Aplikacja P0 ---")
+    graph = p0.apply(graph)
 
     # 3. Wizualizacja wyniku
     # Oczekujemy, że w pliku png przy Q zobaczymy R=1
