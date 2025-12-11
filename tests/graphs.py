@@ -6,7 +6,7 @@ from src.elements import Vertex, Hyperedge
 
 def get_2x2_grid_graph():
     """
-    Tworzy siatkę 2x2 elementy (4 czworokąty), zgodną z przesłanym obrazkiem.
+    Tworzy siatkę 2x2 elementy (4 czworokąty).
 
     Układ wierzchołków (ID):
     7 -- 8 -- 9  (y=2.0)
@@ -50,7 +50,7 @@ def get_2x2_grid_graph():
     q_conns = {
         "Q1": [1, 2, 5, 4],
         "Q2": [2, 3, 6, 5],
-        "Q3": [4, 5, 8, 7],  # To jest element, który chcemy oznaczyć
+        "Q3": [4, 5, 8, 7],
         "Q4": [5, 6, 9, 8],
     }
     for q_uid, v_ids in q_conns.items():

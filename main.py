@@ -7,7 +7,7 @@ from src.utils.visualization import visualize_graph
 def get_initial_graph():
     """
     Tworzy graf początkowy: jeden czworokąt.
-    Struktura zgodna z dokumentacją[cite: 48].
+    Struktura zgodna z dokumentacją
     """
     g = Graph()
 
@@ -48,7 +48,7 @@ def get_initial_graph():
     q1 = Hyperedge(uid="Q1", label="Q", r=0, b=0)
     g.add_hyperedge(q1)
 
-    # Q połączone z wierzchołkami narożnymi [cite: 63, 66-67]
+    # Q połączone z wierzchołkami narożnymi
     for vid in [1, 2, 3, 4]:
         g.connect("Q1", vid)
 

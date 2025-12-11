@@ -32,7 +32,7 @@ class Vertex:
 @dataclass
 class Hyperedge:
     """
-    Reprezentuje element logiczny: Wnętrze (Q, P, S) lub Krawędź (E).
+    Reprezentuje hiperkrawędź: Wnętrze (Q, P, S) lub Krawędź (E).
     """
 
     uid: Union[int, str]

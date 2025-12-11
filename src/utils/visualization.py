@@ -24,7 +24,6 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
             pos[node_id] = (obj.x, obj.y)
 
     # 2. Następnie oblicz pozycje dla Hiperkrawędzi (Hyperedge) - centroidy
-    # Robimy to w pętli, bo Hyperedge może zależeć od Vertexów
     for node_id, data in nx_graph.nodes(data=True):
         obj = data.get("data")
         if isinstance(obj, Hyperedge):
