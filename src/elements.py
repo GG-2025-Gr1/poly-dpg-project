@@ -20,6 +20,9 @@ class Vertex:
     def __repr__(self):
         return f"V(id={self.uid}, x={self.x}, y={self.y}, h={self.hanging})"
 
+    def __hash__(self):
+        return hash(self.uid)
+
 
 @dataclass
 class Hyperedge:
@@ -34,3 +37,6 @@ class Hyperedge:
 
     def __repr__(self):
         return f"{self.label}(id={self.uid}, R={self.r}, B={self.b})"
+
+    def __hash__(self):
+        return hash(self.uid)
