@@ -8,8 +8,8 @@ from ..elements import Vertex, Hyperedge
 
 def visualize_graph(graph: Graph, title: str, filepath: str = None):
     """
-    Wizualizuje obiekt klasy model.graph.Graph.
-    Oblicza pozycje węzłów logicznych (Q, E) na podstawie sąsiadujących wierzchołków.
+    Visualizes an object of the model.graph.Graph class.
+    Calculates the positions of logical nodes (Q, E) based on their neighboring vertices.
     """
     nx_graph = graph.nx_graph
     pos = {}
