@@ -23,6 +23,11 @@ class Vertex:
     def __hash__(self):
         return hash(self.uid)
 
+    def __eq__(self, other):
+        if not isinstance(other, Vertex):
+            return NotImplemented
+        return self.uid == other.uid
+
 
 @dataclass
 class Hyperedge:
@@ -40,3 +45,8 @@ class Hyperedge:
 
     def __hash__(self):
         return hash(self.uid)
+
+    def __eq__(self, other):
+        if not isinstance(other, Hyperedge):
+            return NotImplemented
+        return self.uid == other.uid
