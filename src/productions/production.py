@@ -5,11 +5,6 @@ from ..graph import Graph
 
 
 class Production(ABC):
-    """
-    Klasa bazowa realizująca wzorzec Template Method.
-    Oddziela sprawdzanie dopasowania (LHS) od wykonania zmian (RHS).
-    """
-
     def apply(self, graph: Graph, *args, **kwargs) -> Graph:
         """
         Metoda szablonowa.
@@ -20,7 +15,6 @@ class Production(ABC):
         matches = self.find_lhs(graph, *args, **kwargs)
 
         if not matches:
-            # To nie jest błąd - po prostu brak dopasowań w tej chwili
             return graph
 
         print(
@@ -37,8 +31,6 @@ class Production(ABC):
     def find_lhs(self, graph: Graph, *args, **kwargs) -> List[Any]:
         """
         Zwraca listę dopasowań.
-        Dla P0: lista jednoelementowa [Hyperedge] lub pusta [].
-        Dla P1: lista wielu Hyperedge lub krawędzi.
         """
         pass
 
