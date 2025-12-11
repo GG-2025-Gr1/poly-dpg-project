@@ -1,31 +1,51 @@
-from src.productions.p0 import ProductionP0
-from src.utils.visualization import visualize_graph
+import pytest
 
+from src.productions.p0 import ProductionP0
 from tests.graphs import get_2x2_grid_graph
 
+POSSIBLE_Q_IDS = ["Q1", "Q2", "Q3", "Q4"]
 
-if __name__ == "__main__":
-    print("=== START SYMULACJI SIATKI 2x2 ===")
 
-    # 1. Inicjalizacja siatki 2x2
+def test_2x2_grid_initial_state():
+    """Test that all Q elements in the 2x2 grid have R=0 initially."""
     graph = get_2x2_grid_graph()
-    visualize_graph(
-        graph,
-        "Siatka 2x2 - Stan Poczatkowy",
-        filepath="tests/test_p0/from_presentation/grid_initial.png",
-    )
 
-    # 2. Wykonanie Produkcji P0 na lewym górnym elemencie (Q3)
-    # Zgodnie z obrazkiem, chcemy oznaczyć jeden konkretny element.
+    for q_id in POSSIBLE_Q_IDS:
+        hyperedge = graph.get_hyperedge(q_id)
+        assert hyperedge.label == "Q"
+        assert hyperedge.r == 0, f"{q_id} should have R=0 initially"
+
+
+@pytest.mark.parametrize("target_q_id", POSSIBLE_Q_IDS)
+def test_2x2_grid_p0_on_specific_q(target_q_id):
+    """Test that P0 correctly marks a specific Q element as R=1."""
+    graph = get_2x2_grid_graph()
     p0 = ProductionP0()
 
-    print("\n--- Aplikacja P0 na elemencie Q3 (Lewy-Górny) ---")
-    graph = p0.apply(graph)
+    # Apply P0 to specific Q
+    result_graph = p0.apply(graph, target_id=target_q_id)
 
-    # 3. Wizualizacja wyniku
-    # Spodziewany efekt: Q3 ma R=1, reszta (Q1, Q2, Q4) ma R=0
-    visualize_graph(
-        graph, "Siatka 2x2 - Po P0 na Q3", filepath="tests/test_p0/from_presentation/grid_after_p0.png"
-    )
+    # Check that the target Q has R=1
+    target_hyperedge = result_graph.get_hyperedge(target_q_id)
+    assert target_hyperedge.r == 1, f"{target_q_id} should have R=1 after P0"
 
-    print("\n=== KONIEC SYMULACJI ===")
+    # Check that other Q elements still have R=0
+    other_q_ids = [qid for qid in POSSIBLE_Q_IDS if qid != target_q_id]
+    for other_q_id in other_q_ids:
+        other_hyperedge = result_graph.get_hyperedge(other_q_id)
+        assert other_hyperedge.r == 0, f"{other_q_id} should still have R=0"
+
+
+def test_2x2_grid_p0_automatic_all_candidates():
+    """Test that P0 applies to all candidate Q elements automatically when no target is specified."""
+    graph = get_2x2_grid_graph()
+    p0 = ProductionP0()
+
+    # Apply P0 without specifying target_id (should apply to all candidates)
+    result_graph = p0.apply(graph)
+
+    for q_id in POSSIBLE_Q_IDS:
+        hyperedge = result_graph.get_hyperedge(q_id)
+        assert hyperedge.r == 1, (
+            f"{q_id} should have R=1 after P0 applied automatically"
+        )

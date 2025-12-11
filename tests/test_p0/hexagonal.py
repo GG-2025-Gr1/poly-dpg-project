@@ -1,38 +1,29 @@
-from src.productions.p0 import ProductionP0
-from src.utils.visualization import visualize_graph
+import pytest
 
+from src.productions.p0 import ProductionP0
 from tests.graphs import get_hexagonal_test_graph
 
+HYPEREDGE_UID = "Q1"
 
-if __name__ == "__main__":
-    print("=== TEST WIZUALIZACJI SZEŚCIOKĄTA JAKO Q ===")
-
-    # 1. Inicjalizacja
+def test_hexagonal_graph_initial_state():
+    """Test that the hexagonal graph Q element has R=0 initially."""
     graph = get_hexagonal_test_graph()
 
-    # Wizualizacja powinna umieścić czerwone Q idealnie w środku okręgu
-    visualize_graph(
-        graph,
-        "Szesciokat jako Q - Przed P0",
-        filepath="tests/test_p0/hexagonal/test_hex_Q_init.png",
-    )
+    hyperedge = graph.get_hyperedge(HYPEREDGE_UID)
 
-    # 2. Wykonanie Produkcji P0
-    # P0 szuka 'Q' z R=0. Nasz sześciokąt spełnia te warunki.
+    assert hyperedge.label == "Q"
+    assert hyperedge.r == 0, "Q element should have R=0 initially"
+
+
+def test_hexagonal_graph_p0_not_applied():
+    """Test that P0 is not applied to hexagonal Q (6 vertices instead of 4)."""
+    graph = get_hexagonal_test_graph()
     p0 = ProductionP0()
 
-    print("\n--- Aplikacja P0 na elemencie Q1 ---")
-    graph = p0.apply(graph, target_id="Q1")
+    # Apply P0
+    result_graph = p0.apply(graph, target_id=HYPEREDGE_UID)
+    # Get the Q1 node after P0 attempt
+    hyperedge = result_graph.get_hyperedge(HYPEREDGE_UID)
 
-    # TODO:
-    # We expect that the P0 was not applied because the Q is connected to 6 vertices, not 4.
-
-    # 3. Wynik
-    # Oczekujemy, że czerwone Q w środku sześciokąta zmieni opis na R=1
-    visualize_graph(
-        graph,
-        "Szesciokat jako Q - Po P0",
-        filepath="tests/test_p0/hexagonal/test_hex_Q_result.png",
-    )
-
-    print("\n=== KONIEC TESTU ===")
+    # P0 should not be applied because Q is connected to 6 vertices, not 4
+    assert hyperedge.r == 0, "P0 should not be applied to hexagonal Q (6 vertices)"
