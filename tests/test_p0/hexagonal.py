@@ -14,7 +14,7 @@ if __name__ == "__main__":
     visualize_graph(
         graph,
         "Szesciokat jako Q - Przed P0",
-        filepath="tests/test_p0/b/test_hex_Q_init.png",
+        filepath="tests/test_p0/hexagonal/test_hex_Q_init.png",
     )
 
     # 2. Wykonanie Produkcji P0
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     visualize_graph(
         graph,
         "Szesciokat jako Q - Po P0",
-        filepath="tests/test_p0/b/test_hex_Q_result.png",
+        filepath="tests/test_p0/hexagonal/test_hex_Q_result.png",
     )
 
     print("\n=== KONIEC TESTU ===")
