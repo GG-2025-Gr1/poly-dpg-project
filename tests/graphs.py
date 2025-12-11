@@ -1,7 +1,7 @@
+import math
+
 from src.graph import Graph
 from src.elements import Vertex, Hyperedge
-from src.productions.p0 import ProductionP0
-from src.utils.visualization import visualize_graph
 
 
 def get_2x2_grid_graph():
@@ -91,28 +91,51 @@ def get_2x2_grid_graph():
     return g
 
 
-if __name__ == "__main__":
-    print("=== START SYMULACJI SIATKI 2x2 ===")
+def get_hexagonal_test_graph():
+    """
+    Tworzy geometrię sześciokąta, ale środek nazywa 'Q'.
+    Służy do testowania wizualizacji i mechanizmu P0.
+    """
+    g = Graph()
 
-    # 1. Inicjalizacja siatki 2x2
-    graph = get_2x2_grid_graph()
-    visualize_graph(
-        graph,
-        "Siatka 2x2 - Stan Poczatkowy",
-        filepath="tests/test_p0/a/grid_initial.png",
-    )
+    # --- 1. Geometria (6 wierzchołków na okręgu) ---
+    radius = 2.0
+    center_x, center_y = 3.0, 3.0  # Przesunięcie środka
 
-    # 2. Wykonanie Produkcji P0 na lewym górnym elemencie (Q3)
-    # Zgodnie z obrazkiem, chcemy oznaczyć jeden konkretny element.
-    p0 = ProductionP0()
+    vertices_ids = [1, 2, 3, 4, 5, 6]
 
-    print("\n--- Aplikacja P0 na elemencie Q3 (Lewy-Górny) ---")
-    graph = p0.apply(graph, target_id="Q3")
+    for i, vid in enumerate(vertices_ids):
+        # Kąt co 60 stopni
+        angle_deg = 60 * i
+        angle_rad = math.radians(angle_deg)
 
-    # 3. Wizualizacja wyniku
-    # Spodziewany efekt: Q3 ma R=1, reszta (Q1, Q2, Q4) ma R=0
-    visualize_graph(
-        graph, "Siatka 2x2 - Po P0 na Q3", filepath="tests/test_p0/a/grid_after_p0.png"
-    )
+        x = center_x + radius * math.cos(angle_rad)
+        y = center_y + radius * math.sin(angle_rad)
 
-    print("\n=== KONIEC SYMULACJI ===")
+        # Tworzymy wierzchołki geometryczne
+        g.add_vertex(Vertex(uid=vid, x=round(x, 2), y=round(y, 2)))
+
+    # --- 2. Krawędzie (E) ---
+    # Łączymy w pętlę 1-2-3-4-5-6-1
+    for i in range(len(vertices_ids)):
+        curr_v = vertices_ids[i]
+        next_v = vertices_ids[(i + 1) % len(vertices_ids)]
+
+        eid = f"E{i + 1}"
+        # Tworzymy krawędzie (zielone kwadraty w wizualizacji)
+        g.add_hyperedge(Hyperedge(uid=eid, label="E", r=0, b=1))
+        g.connect(eid, curr_v)
+        g.connect(eid, next_v)
+
+    # --- 3. Wnętrze (Q) - TEST ---
+    # Tutaj robimy "oszustwo" dla testu.
+    # Geometrycznie to sześciokąt, ale logicznie dajemy label='Q'.
+    # Dzięki temu wizualizacja pokaże czerwony kwadrat, a P0 zadziała.
+    q_id = "Q1"
+    g.add_hyperedge(Hyperedge(uid=q_id, label="Q", r=0, b=0))
+
+    # Podłączamy Q do wszystkich 6 wierzchołków
+    for vid in vertices_ids:
+        g.connect(q_id, vid)
+
+    return g
