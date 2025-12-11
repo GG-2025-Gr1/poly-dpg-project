@@ -57,28 +57,28 @@ pip install matplotlib networkx pytest
 
 ```
 GG_proj/
-├── LICENSE                       # Licencja projektu
-├── README.md                     # README (wersja angielska)
-├── README-pl.md                  # Ten plik (wersja polska)
-├── pyproject.toml                # Konfiguracja projektu i zależności
-├── main.py                       # Główny punkt wejścia i przykład użycia
-├── src/                          # Kod źródłowy
-│   ├── __init__.py               # Inicjalizator pakietu
-│   ├── elements.py               # Klasy danych Vertex i Hyperedge
-│   ├── graph.py                  # Klasa Graph opakowująca NetworkX
-│   ├── productions/              # Reguły transformacji grafu
-│   │   ├── __init__.py           # Inicjalizator pakietu produkcji
-│   │   ├── production.py         # Abstrakcyjna klasa bazowa dla produkcji
-│   │   └── p0.py                 # Produkcja P0 (oznaczanie elementów)
-│   └── utils/                    # Moduły narzędziowe
-│       └── visualization.py # Funkcje wizualizacji grafów
-├── tests/                   # Zestaw testów
-│   ├── graphs.py                 # Generatory grafów testowych (siatka 2x2, itd.)
-│   └── test_p0/                  # Testy dla produkcji P0
-│       ├── from_presentation.py  # Testy parametryczne dla P0
-│       └── hexagonal.py          # Testy siatek heksagonalnych
-└── visualizations/          # Katalog wyjściowy dla wygenerowanych obrazów
-    └── tests/              # Wizualizacje wyjściowe testów
+├── LICENSE                           # Licencja projektu
+├── README.md                         # README (wersja angielska)
+├── README-pl.md                      # Ten plik (wersja polska)
+├── pyproject.toml                    # Konfiguracja projektu i zależności
+├── main.py                           # Główny punkt wejścia i przykład użycia
+├── src/                              # Kod źródłowy
+│   ├── __init__.py                   # Inicjalizator pakietu
+│   ├── elements.py                   # Klasy danych Vertex i Hyperedge
+│   ├── graph.py                      # Klasa Graph opakowująca NetworkX
+│   ├── productions/                  # Reguły transformacji grafu
+│   │   ├── __init__.py               # Inicjalizator pakietu produkcji
+│   │   ├── production.py             # Abstrakcyjna klasa bazowa dla produkcji
+│   │   └── p0.py                     # Produkcja P0 (oznaczanie elementów)
+│   └── utils/                        # Moduły narzędziowe
+│       └── visualization.py          # Funkcje wizualizacji grafów
+├── tests/                            # Zestaw testów
+│   ├── graphs.py                     # Generatory grafów testowych (siatka 2x2, itd.)
+│   └── test_p0/                      # Testy dla produkcji P0
+│       ├── test_from_presentation.py # Testy parametryczne dla P0
+│       └── test_hexagonal.py         # Testy siatek heksagonalnych
+└── visualizations/                   # Katalog wyjściowy dla wygenerowanych obrazów
+    └── tests/                        # Wizualizacje wyjściowe testów
         └── test_p0/
             ├── from_presentation/
             └── hexagonal/
@@ -131,13 +131,13 @@ GG_proj/
   - `get_hexagonal_graph()`: Tworzy wzorce siatek heksagonalnych
   - Używane przez zestawy testów do tworzenia spójnych scenariuszy testowych
 
-- **[test_p0/from_presentation.py](tests/test_p0/from_presentation.py)**: Kompleksowe testy P0
+- **[test_p0/test_from_presentation.py](tests/test_p0/test_from_presentation.py)**: Kompleksowe testy P0
   - Testy walidacji stanu początkowego
   - Testy parametryczne dla aplikacji P0 do konkretnych elementów Q
   - Testy automatycznej aplikacji P0 do wszystkich kandydatów
   - Waliduje, że tylko docelowe elementy są modyfikowane
 
-- **[test_p0/hexagonal.py](tests/test_p0/hexagonal.py)**: Testy P0 na siatkach heksagonalnych
+- **[test_p0/test_hexagonal.py](tests/test_p0/test_hexagonal.py)**: Testy P0 na siatkach heksagonalnych
 
 ## Użycie
 
@@ -195,13 +195,13 @@ Uruchom zestaw testów z pytest:
 pytest
 
 # Uruchom konkretny plik testowy
-pytest tests/test_p0/from_presentation.py
+pytest tests/test_p0/test_from_presentation.py
 
 # Uruchom z szczegółowym wyjściem
 pytest -v
 
 # Uruchom konkretny test
-pytest tests/test_p0/from_presentation.py::test_2x2_grid_initial_state
+pytest tests/test_p0/test_from_presentation.py::test_2x2_grid_initial_state
 ```
 
 Zestaw testów obejmuje:

@@ -57,28 +57,28 @@ pip install matplotlib networkx pytest
 
 ```
 GG_proj/
-├── LICENSE                       # Project license
-├── README.md                     # This file
-├── README-pl.md                  # This file but in Polish
-├── pyproject.toml                # Project configuration and dependencies
-├── main.py                       # Main entry point and example usage
-├── src/                          # Source code
-│   ├── __init__.py               # Package initializer
-│   ├── elements.py               # Vertex and Hyperedge data classes
-│   ├── graph.py                  # Graph class wrapping NetworkX
-│   ├── productions/              # Graph transformation rules
-│   │   ├── __init__.py           # Productions package initializer
-│   │   ├── production.py         # Abstract base class for productions
-│   │   └── p0.py                 # P0 production (element marking)
-│   └── utils/                    # Utility modules
-│       └── visualization.py      # Graph visualization functions
-├── tests/                        # Test suite
-│   ├── graphs.py                 # Test graph generators (2x2 grid, etc.)
-│   └── test_p0/                  # Tests for P0 production
-│       ├── from_presentation.py  # Parametric tests for P0
-│       └── hexagonal.py          # Hexagonal mesh tests
-└── visualizations/               # Output directory for generated images
-    └── tests/                    # Test visualization outputs
+├── LICENSE                           # Project license
+├── README.md                         # This file
+├── README-pl.md                      # This file but in Polish
+├── pyproject.toml                    # Project configuration and dependencies
+├── main.py                           # Main entry point and example usage
+├── src/                              # Source code
+│   ├── __init__.py                   # Package initializer
+│   ├── elements.py                   # Vertex and Hyperedge data classes
+│   ├── graph.py                      # Graph class wrapping NetworkX
+│   ├── productions/                  # Graph transformation rules
+│   │   ├── __init__.py               # Productions package initializer
+│   │   ├── production.py             # Abstract base class for productions
+│   │   └── p0.py                     # P0 production (element marking)
+│   └── utils/                        # Utility modules
+│       └── visualization.py          # Graph visualization functions
+├── tests/                            # Test suite
+│   ├── graphs.py                     # Test graph generators (2x2 grid, etc.)
+│   └── test_p0/                      # Tests for P0 production
+│       ├── test_from_presentation.py # Parametric tests for P0
+│       └── test_hexagonal.py         # Hexagonal mesh tests
+└── visualizations/                   # Output directory for generated images
+    └── tests/                        # Test visualization outputs
         └── test_p0/
             ├── from_presentation/
             └── hexagonal/
@@ -131,13 +131,13 @@ GG_proj/
   - `get_hexagonal_graph()`: Creates hexagonal mesh patterns
   - Used by test suites to create consistent test scenarios
 
-- **[test_p0/from_presentation.py](tests/test_p0/from_presentation.py)**: Comprehensive P0 tests
+- **[test_p0/test_from_presentation.py](tests/test_p0/test_from_presentation.py)**: Comprehensive P0 tests
   - Tests initial state validation
   - Parametric tests for applying P0 to specific Q elements
   - Tests automatic P0 application to all candidates
   - Validates that only target elements are modified
 
-- **[test_p0/hexagonal.py](tests/test_p0/hexagonal.py)**: Tests P0 on hexagonal meshes
+- **[test_p0/test_hexagonal.py](tests/test_p0/test_hexagonal.py)**: Tests P0 on hexagonal meshes
 
 ## Usage
 
@@ -195,13 +195,13 @@ Run the test suite with pytest:
 pytest
 
 # Run specific test file
-pytest tests/test_p0/from_presentation.py
+pytest tests/test_p0/test_from_presentation.py
 
 # Run with verbose output
 pytest -v
 
 # Run specific test
-pytest tests/test_p0/from_presentation.py::test_2x2_grid_initial_state
+pytest tests/test_p0/test_from_presentation.py::test_2x2_grid_initial_state
 ```
 
 The test suite includes:
