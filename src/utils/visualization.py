@@ -63,11 +63,12 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
             elif obj.label == "E":
                 colors.append("#99ff99")  # Zielony dla krawędzi
                 sizes.append(300)
-                labels[node_id] = f"E\nB={obj.b}"
+                labels[node_id] = f"E\nB={obj.b}\nR={obj.r}"
             else:
                 colors.append("#cccccc")
                 sizes.append(300)
                 labels[node_id] = str(obj.label)
+                labels[node_id] = f"{obj.label}\nR={obj.r}"
 
     # 4. Rysowanie
     plt.figure(figsize=(8, 8))
