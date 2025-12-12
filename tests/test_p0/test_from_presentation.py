@@ -49,3 +49,112 @@ def test_2x2_grid_p0_automatic_all_candidates():
         assert hyperedge.r == 1, (
             f"{q_id} should have R=1 after P0 applied automatically"
         )
+
+
+def test_2x2_grid_p0_automatic_one_q_modified_to_e():
+    """Test that P0 skips Q elements that have been modified to E before application."""
+    graph = get_2x2_grid_graph()
+
+    Q_HYPEREDGE_TO_MODIFY = "Q2"
+    graph.update_hyperedge(Q_HYPEREDGE_TO_MODIFY, label="E")
+
+    p0 = ProductionP0()
+
+    # Apply P0 without specifying target_id (should apply to all candidates)
+    result_graph = p0.apply(graph)
+
+    # Check that the modified Q hyperedge is not processed
+    modified_hyperedge = result_graph.get_hyperedge(Q_HYPEREDGE_TO_MODIFY)
+    assert modified_hyperedge.label == "E", (
+        f"{Q_HYPEREDGE_TO_MODIFY} should remain labeled as 'E'"
+    )
+    assert modified_hyperedge.r == 0, (
+        f"{Q_HYPEREDGE_TO_MODIFY} should have R=0 as it was not a 'Q' during P0"
+    )
+
+    q_ids_after_modification = [
+        qid for qid in POSSIBLE_Q_IDS if qid != Q_HYPEREDGE_TO_MODIFY
+    ]
+    for q_id in q_ids_after_modification:
+        hyperedge = result_graph.get_hyperedge(q_id)
+        assert hyperedge.r == 1, (
+            f"{q_id} should have R=1 after P0 applied automatically"
+        )
+
+
+def test_2x2_grid_p0_automatic_one_edge_removed():
+    """Test that P0 skips Q elements that have been modified by removing an edge before application."""
+    graph = get_2x2_grid_graph()
+
+    EDGE_TO_REMOVE = ["Q2", 5]
+    graph.remove_edge(*EDGE_TO_REMOVE)
+
+    p0 = ProductionP0()
+
+    # Apply P0 without specifying target_id (should apply to all candidates)
+    result_graph = p0.apply(graph)
+
+    # Check that the modified Q hyperedge is not processed
+    modified_hyperedge = result_graph.get_hyperedge(EDGE_TO_REMOVE[0])
+    assert modified_hyperedge.label == "Q", (
+        f"{EDGE_TO_REMOVE[0]} should remain labeled as 'Q'"
+    )
+    assert modified_hyperedge.r == 0, (
+        f"{EDGE_TO_REMOVE[0]} should have R=0 as it was not connected properly during P0"
+    )
+
+    q_ids_after_modification = [
+        qid for qid in POSSIBLE_Q_IDS if qid != EDGE_TO_REMOVE[0]
+    ]
+    for q_id in q_ids_after_modification:
+        hyperedge = result_graph.get_hyperedge(q_id)
+        assert hyperedge.r == 1, (
+            f"{q_id} should have R=1 after P0 applied automatically"
+        )
+
+
+def test_2x2_grid_p0_automatic_one_vertex_removed():
+    """Test that P0 skips Q elements that have been modified by removing a vertex before application."""
+    graph = get_2x2_grid_graph()
+
+    EDGES_TO_REMOVE = [
+        ("Q3", 7),
+        ("E6", 8),
+        ("E6", 7),
+        ("E7", 7),
+        ("E7", 4),
+    ]
+    for edge in EDGES_TO_REMOVE:
+        graph.remove_edge(*edge)
+
+    HYPEREDGES_TO_REMOVE = ["E6", "E7"]
+    for hyperedge_id in HYPEREDGES_TO_REMOVE:
+        graph.remove_node(hyperedge_id)
+
+    VERTEX_TO_REMOVE = 7
+    graph.remove_node(VERTEX_TO_REMOVE)
+
+    MODIFIED_HYPEREDGE = "Q3"
+
+    p0 = ProductionP0()
+
+    # Apply P0 without specifying target_id (should apply to all candidates)
+    result_graph = p0.apply(graph)
+
+    # Check that the modified Q hyperedge is not processed
+    modified_hyperedge = result_graph.get_hyperedge(MODIFIED_HYPEREDGE)
+    assert modified_hyperedge.label == "Q", (
+        f"{MODIFIED_HYPEREDGE} should remain labeled as 'Q'"
+    )
+    assert modified_hyperedge.r == 0, (
+        f"{MODIFIED_HYPEREDGE} should have R=0 as it was not connected properly during P0"
+    )
+
+    q_ids_after_modification = [
+        qid for qid in POSSIBLE_Q_IDS if qid != MODIFIED_HYPEREDGE
+    ]
+    for q_id in q_ids_after_modification:
+        hyperedge = result_graph.get_hyperedge(q_id)
+        assert hyperedge.r == 1, (
+            f"{q_id} should have R=1 after P0 applied automatically"
+        )
