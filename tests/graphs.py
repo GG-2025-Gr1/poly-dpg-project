@@ -1,0 +1,141 @@
+import math
+
+from src.graph import Graph
+from src.elements import Vertex, Hyperedge
+
+
+def get_2x2_grid_graph():
+    """
+    Tworzy siatkę 2x2 elementy (4 czworokąty).
+
+    Układ wierzchołków (ID):
+    7 -- 8 -- 9  (y=2.0)
+    | Q3 | Q4 |
+    4 -- 5 -- 6  (y=1.0)
+    | Q1 | Q2 |
+    1 -- 2 -- 3  (y=0.0)
+    """
+    g = Graph()
+
+    # --- 1. Wierzchołki (Vertex) ---
+    # Generujemy 9 wierzchołków w siatce 3x3 punkty
+    vertices_data = [
+        (1, 0.0, 0.0),
+        (2, 1.0, 0.0),
+        (3, 2.0, 0.0),  # Rząd dolny
+        (4, 0.0, 1.0),
+        (5, 1.0, 1.0),
+        (6, 2.0, 1.0),  # Rząd środkowy
+        (7, 0.0, 2.0),
+        (8, 1.0, 2.0),
+        (9, 2.0, 2.0),  # Rząd górny
+    ]
+
+    for uid, x, y in vertices_data:
+        g.add_vertex(Vertex(uid=uid, x=x, y=y))
+
+    # --- 2. Elementy Wnętrza (Q) ---
+    # Definiujemy 4 elementy. Lewy-górny to Q3.
+    # Atrybut R=0 na starcie.
+    quads = [
+        Hyperedge(uid="Q1", label="Q", r=0, b=0),  # Lewy-dół
+        Hyperedge(uid="Q2", label="Q", r=0, b=0),  # Prawy-dół
+        Hyperedge(uid="Q3", label="Q", r=0, b=0),  # Lewy-góra (TARGET)
+        Hyperedge(uid="Q4", label="Q", r=0, b=0),  # Prawy-góra
+    ]
+    for q in quads:
+        g.add_hyperedge(q)
+
+    # Definicja połączeń Q z wierzchołkami (kolejność zazwyczaj przeciwna do ruchu wskazówek zegara lub zgodna)
+    q_conns = {
+        "Q1": [1, 2, 5, 4],
+        "Q2": [2, 3, 6, 5],
+        "Q3": [4, 5, 8, 7],
+        "Q4": [5, 6, 9, 8],
+    }
+    for q_uid, v_ids in q_conns.items():
+        for v_id in v_ids:
+            g.connect(q_uid, v_id)
+
+    # --- 3. Krawędzie (E) ---
+    # Dodajemy krawędzie, aby graf był kompletny (ważne: krawędzie wewnętrzne są współdzielone!)
+    # Format: (ID, v1, v2, Boundary_Flag)
+    edges_data = [
+        # Zewnętrzne (Boundary B=1)
+        ("E1", 1, 2, 1),
+        ("E2", 2, 3, 1),  # Dół
+        ("E3", 3, 6, 1),
+        ("E4", 6, 9, 1),  # Prawa
+        ("E5", 9, 8, 1),
+        ("E6", 8, 7, 1),  # Góra
+        ("E7", 7, 4, 1),
+        ("E8", 4, 1, 1),  # Lewa
+        # Wewnętrzne (Internal B=0) - to są krawędzie współdzielone między Q
+        (
+            "E9",
+            4,
+            5,
+            0,
+        ),  # Pozioma środek (między Q1/Q3 a Q2/Q4 - nie, to między Q1 a Q3)
+        ("E10", 5, 6, 0),  # Pozioma środek
+        ("E11", 2, 5, 0),  # Pionowa środek
+        ("E12", 5, 8, 0),  # Pionowa środek
+    ]
+
+    for eid, v1, v2, b_flag in edges_data:
+        e = Hyperedge(uid=eid, label="E", r=0, b=b_flag)
+        g.add_hyperedge(e)
+        g.connect(eid, v1)
+        g.connect(eid, v2)
+
+    return g
+
+
+def get_hexagonal_test_graph():
+    """
+    Tworzy geometrię sześciokąta, ale środek nazywa 'Q'.
+    Służy do testowania wizualizacji i mechanizmu P0.
+    """
+    g = Graph()
+
+    # --- 1. Geometria (6 wierzchołków na okręgu) ---
+    radius = 2.0
+    center_x, center_y = 3.0, 3.0  # Przesunięcie środka
+
+    vertices_ids = [1, 2, 3, 4, 5, 6]
+
+    for i, vid in enumerate(vertices_ids):
+        # Kąt co 60 stopni
+        angle_deg = 60 * i
+        angle_rad = math.radians(angle_deg)
+
+        x = center_x + radius * math.cos(angle_rad)
+        y = center_y + radius * math.sin(angle_rad)
+
+        # Tworzymy wierzchołki geometryczne
+        g.add_vertex(Vertex(uid=vid, x=round(x, 2), y=round(y, 2)))
+
+    # --- 2. Krawędzie (E) ---
+    # Łączymy w pętlę 1-2-3-4-5-6-1
+    for i in range(len(vertices_ids)):
+        curr_v = vertices_ids[i]
+        next_v = vertices_ids[(i + 1) % len(vertices_ids)]
+
+        eid = f"E{i + 1}"
+        # Tworzymy krawędzie (zielone kwadraty w wizualizacji)
+        g.add_hyperedge(Hyperedge(uid=eid, label="E", r=0, b=1))
+        g.connect(eid, curr_v)
+        g.connect(eid, next_v)
+
+    # --- 3. Wnętrze (Q) - TEST ---
+    # Tutaj robimy "oszustwo" dla testu.
+    # Geometrycznie to sześciokąt, ale logicznie dajemy label='Q'.
+    # Dzięki temu wizualizacja pokaże czerwony kwadrat, a P0 zadziała.
+    q_id = "Q1"
+    g.add_hyperedge(Hyperedge(uid=q_id, label="Q", r=0, b=0))
+
+    # Podłączamy Q do wszystkich 6 wierzchołków
+    for vid in vertices_ids:
+        g.connect(q_id, vid)
+
+    return g
