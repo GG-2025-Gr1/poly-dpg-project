@@ -86,6 +86,13 @@ class Graph:
             raise ValueError(f"Węzeł o ID {uid} nie istnieje w grafie.")
         self._nx_graph.remove_node(uid)
 
+    def remove_edge(self, node_id1: Union[int, str], node_id2: Union[int, str]) -> None:
+        if not self._nx_graph.has_edge(node_id1, node_id2):
+            raise ValueError(
+                f"Krawędź między {node_id1} a {node_id2} nie istnieje w grafie."
+            )
+        self._nx_graph.remove_edge(node_id1, node_id2)
+
     def get_neighbors(self, uid: Union[int, str]) -> List[Vertex]:
         if not isinstance(self.get_node(uid), Vertex):
             raise ValueError(f"Węzeł o ID {uid} nie jest wierzchołkiem typu Vertex.")
