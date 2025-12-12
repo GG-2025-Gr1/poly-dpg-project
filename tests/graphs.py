@@ -139,3 +139,87 @@ def get_hexagonal_test_graph():
         g.connect(q_id, vid)
 
     return g
+
+
+def get_graph_with_shared_edge_marked():
+    """
+    Graf do testowania P3.
+    Dwa trójkąty/czworokąty współdzielące krawędź E_shared.
+    E_shared ma R=1, B=0.
+    """
+    g = Graph()
+
+    # Wierzchołki
+    v1 = Vertex(uid=1, x=0, y=0)
+    v2 = Vertex(uid=2, x=2, y=0)
+    v3 = Vertex(uid=3, x=1, y=2)
+    v4 = Vertex(uid=4, x=1, y=-2)
+
+    for v in [v1, v2, v3, v4]:
+        g.add_vertex(v)
+
+    # Krawędź współdzielona (do podziału)
+    e_shared = Hyperedge(uid="E_shared", label="E", r=1, b=0)
+    g.add_hyperedge(e_shared)
+    g.connect("E_shared", 1)
+    g.connect("E_shared", 2)
+
+    # Krawędzie zewnętrzne (żeby graf wyglądał sensownie)
+    edges = [
+        ("E1", 1, 3), ("E2", 3, 2),  # Górny trójkąt
+        ("E3", 1, 4), ("E4", 4, 2)  # Dolny trójkąt
+    ]
+    for eid, vid1, vid2 in edges:
+        e = Hyperedge(uid=eid, label="E", r=0, b=1)
+        g.add_hyperedge(e)
+        g.connect(eid, vid1)
+        g.connect(eid, vid2)
+
+    # Elementy wnętrza (opcjonalne dla P3, ale poprawne topologicznie)
+    q1 = Hyperedge(uid="Q1", label="Q", r=0, b=0)  # Góra
+    g.add_hyperedge(q1)
+    for vid in [1, 2, 3]:
+        g.connect("Q1", vid)
+
+    q2 = Hyperedge(uid="Q2", label="Q", r=0, b=0)  # Dół
+    g.add_hyperedge(q2)
+    for vid in [1, 2, 4]:
+        g.connect("Q2", vid)
+
+    return g
+
+
+def get_pentagonal_graph_marked():
+    """
+    Graf do testowania P7.
+    Jeden element P (pięciokąt) z R=1.
+    Otoczony 5 krawędziami E z R=0.
+    """
+    g = Graph()
+
+    # 5 wierzchołków na okręgu
+    import math
+    radius = 2.0
+    for i in range(5):
+        angle = math.radians(72 * i)
+        x = radius * math.cos(angle)
+        y = radius * math.sin(angle)
+        g.add_vertex(Vertex(uid=i+1, x=x, y=y))
+
+    # Wnętrze P (R=1 - trigger dla P7)
+    p = Hyperedge(uid="P1", label="P", r=1, b=0)
+    g.add_hyperedge(p)
+    for i in range(1, 6):
+        g.connect("P1", i)
+
+    # 5 krawędzi (R=0 - mają zostać zmienione na R=1)
+    for i in range(5):
+        curr = i + 1
+        next_v = ((i + 1) % 5) + 1
+        eid = f"E{curr}"
+        e = Hyperedge(uid=eid, label="E", r=0, b=1)
+        g.add_hyperedge(e)
+        g.connect(eid, curr)
+        g.connect(eid, next_v)
+
+    return g
