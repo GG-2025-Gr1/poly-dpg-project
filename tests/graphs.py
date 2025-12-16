@@ -223,3 +223,38 @@ def get_pentagonal_graph_marked():
         g.connect(eid, next_v)
 
     return g
+
+def get_hexagonal_graph_marked():
+    """
+    Graf do testowania P10.
+    Jeden element S (szcześciokąt) z R=1.
+    Otoczony 6 krawędziami E z R=0.
+    """
+    g = Graph()
+
+    # 6 wierzchołków na okręgu
+    import math
+    radius = 2.0
+    for i in range(6):
+        angle = math.radians(60 * i)
+        x = radius * math.cos(angle)
+        y = radius * math.sin(angle)
+        g.add_vertex(Vertex(uid=i+1, x=x, y=y))
+
+    # Wnętrze P (R=1 - trigger dla P10)
+    p = Hyperedge(uid="P1", label="S", r=1, b=0)
+    g.add_hyperedge(p)
+    for i in range(1, 7):
+        g.connect("P1", i)
+
+    # 6 krawędzi (R=0 - mają zostać zmienione na R=1)
+    for i in range(6):
+        curr = i + 1
+        next_v = ((i + 1) % 6) + 1
+        eid = f"E{curr}"
+        e = Hyperedge(uid=eid, label="E", r=0, b=1)
+        g.add_hyperedge(e)
+        g.connect(eid, curr)
+        g.connect(eid, next_v)
+
+    return g
