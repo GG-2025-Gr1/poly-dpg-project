@@ -41,6 +41,7 @@ class ProductionP1(Production):
                 continue
 
             should_continue = False
+            e_labaled_edges = set()
             for vertex in hyperedge_vertices:
                 vertex_neighbors = graph.get_neighbors(vertex.uid)
                 for vertex_neighbor in vertex_neighbors:
@@ -58,7 +59,6 @@ class ProductionP1(Production):
                         break
 
                     hyperedges.remove(hyperedge_obj)
-
                     if (
                         len(hyperedges) != 0
                         and len(list(filter(lambda he: he.label == "E", hyperedges)))
@@ -66,12 +66,21 @@ class ProductionP1(Production):
                     ):
                         should_continue = True
                         break
+                    
+                    if len(list(filter(lambda he: he.label == "E", hyperedges))) > 0:
+                        e_labaled_edges.add(
+                            list(
+                                filter(lambda he: he.label == "E", hyperedges)
+                            )[0].uid
+                        )
 
                 if should_continue:
                     break
             if should_continue:
                 continue
             
+            if len(e_labaled_edges) != 4:
+                continue
             candidates.append(hyperedge_obj)
 
         return candidates
