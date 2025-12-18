@@ -258,7 +258,35 @@ def get_hexagonal_graph_marked():
         g.connect(eid, next_v)
 
     return g
-  
+
+def get_heptagonal_graph_marked():
+    """
+    Graf do testowania P13.
+    Jeden element T (siedmiokąt) z R=1.
+    Otoczony 5 krawędziami E z R=0.
+    """
+    g = Graph()
+
+    # Wierzchołki
+    vertices = [Vertex(uid=i, x=math.cos(2 * math.pi / 7 * i), y=math.sin(2 * math.pi / 7 * i)) for i in range(1, 8)]
+    for v in vertices:
+        g.add_vertex(v)
+
+    # Element T (siedmiokąt)
+    t = Hyperedge(uid="T", label="T", r=1, b=0)
+    g.add_hyperedge(t)
+    for v in vertices:
+        g.connect("T", v.uid)
+
+    # Krawędzie E (R=0)
+    for i in range(7):
+        e = Hyperedge(uid=f"E{i+1}", label="E", r=0, b=1)
+        g.add_hyperedge(e)
+        g.connect(e.uid, vertices[i].uid)
+        g.connect(e.uid, vertices[(i + 1) % 7].uid)
+
+    return g
+
 def get_2x2_grid_graph_marked(marked_quad_ids=[]):
     """
     Tworzy siatkę 2x2 elementy (4 czworokąty).
