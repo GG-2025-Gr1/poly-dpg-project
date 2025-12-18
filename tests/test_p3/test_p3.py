@@ -7,9 +7,15 @@ from src.utils.visualization import visualize_graph
 def test_p3_isomorphism_and_application():
     """
     Sprawdza czy P3 poprawnie wykrywa LHS i aplikuje RHS.
-    Oczekiwane: Krawędź E_shared znika, powstają dwie nowe, powstaje wierzchołek w środku.
+    Zgodnie z diagramem: stara krawędź zostaje (R: 1->0), powstają 2 nowe krawędzie i wierzchołek V.
     """
     graph = get_graph_with_shared_edge_marked()
+    
+    # Liczba krawędzi E przed
+    edges_before = [n for n, d in graph.nx_graph.nodes(data=True) 
+                    if hasattr(d.get("data"), "label") and d.get("data").label == "E"]
+    count_before = len(edges_before)
+    
     visualize_graph(graph, "P3: Przed", filepath="tests/test_p3/before_p3.png")
 
     p3 = ProductionP3()
@@ -19,15 +25,29 @@ def test_p3_isomorphism_and_application():
     assert matches[0].uid == "E_shared"
 
     graph = p3.apply(graph)
+    
+    # Liczba krawędzi E po - powinna wzrosnąć o 2 (stara zostaje + 2 nowe)
+    edges_after = [n for n, d in graph.nx_graph.nodes(data=True) 
+                   if hasattr(d.get("data"), "label") and d.get("data").label == "E"]
+    count_after = len(edges_after)
+    assert count_after == count_before + 2, f"Liczba krawędzi E powinna wzrosnąć o 2 ({count_before} -> {count_after})"
+    
     visualize_graph(graph, "P3: Po", filepath="tests/test_p3/after_p3.png")
 
     # Weryfikacja
-    # 1. Stara krawędź usunięta
-    with pytest.raises(ValueError):
-        graph.get_hyperedge("E_shared")
+    # 1. Stara krawędź POZOSTAJE z zaktualizowanym R
+    e_shared = graph.get_hyperedge("E_shared")
+    assert e_shared.r == 0, "Stara krawędź powinna mieć R=0"
+    assert e_shared.b == 0, "Stara krawędź powinna zachować B=0"
+    
+    # Sprawdź że stara krawędź wciąż łączy te same wierzchołki
+    e_shared_verts = graph.get_hyperedge_vertices("E_shared")
+    assert len(e_shared_verts) == 2
+    e_shared_vert_ids = {v.uid for v in e_shared_verts}
+    assert e_shared_vert_ids == {1, 2}, "Stara krawędź powinna łączyć wierzchołki 1 i 2"
 
     # 2. Nowy wierzchołek dodany
-    new_v_id = "E_shared_v_new"
+    new_v_id = "E_shared_v"
     new_vertex = graph.get_vertex(new_v_id)
     assert new_vertex.x == 1.0  # (0+2)/2
     assert new_vertex.y == 0.0  # (0+0)/2
@@ -40,6 +60,15 @@ def test_p3_isomorphism_and_application():
     assert e2.r == 0
     assert e1.b == 0
     assert e2.b == 0
+    
+    # Sprawdź topologię nowych krawędzi
+    e1_verts = graph.get_hyperedge_vertices("E_shared_e1")
+    e2_verts = graph.get_hyperedge_vertices("E_shared_e2")
+    e1_vert_ids = {v.uid for v in e1_verts}
+    e2_vert_ids = {v.uid for v in e2_verts}
+    
+    assert e1_vert_ids == {1, "E_shared_v"}, "E_shared_e1 powinna łączyć v1 z V"
+    assert e2_vert_ids == {2, "E_shared_v"}, "E_shared_e2 powinna łączyć V z v2"
 
 
 def test_p3_incorrect_b_attribute():

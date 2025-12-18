@@ -21,7 +21,11 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
     for node_id, data in nx_graph.nodes(data=True):
         obj = data.get("data")
         if isinstance(obj, Vertex):
-            pos[node_id] = (obj.x, obj.y)
+            x, y = obj.x, obj.y
+            # Offset dla hanging nodes - aby nie nakładały się z krawędziami
+            if obj.hanging:
+                y += 0.2
+            pos[node_id] = (x, y)
 
     # 2. Następnie oblicz pozycje dla Hiperkrawędzi (Hyperedge) - centroidy
     for node_id, data in nx_graph.nodes(data=True):
