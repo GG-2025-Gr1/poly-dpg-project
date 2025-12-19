@@ -1,22 +1,26 @@
 import pytest
 from src.productions.p3 import ProductionP3
-from tests.graphs import get_graph_with_shared_edge_marked
+from tests.graphs import get_graph_with_shared_edge_marked_extended, get_graph_with_shared_edge_marked_simple
 from src.utils.visualization import visualize_graph
 
 
-def test_p3_isomorphism_and_application():
+@pytest.mark.parametrize("graph_func,desc", [
+    (get_graph_with_shared_edge_marked_simple, "simple"),
+    (get_graph_with_shared_edge_marked_extended, "complex"),
+])
+def test_p3_isomorphism_and_application(graph_func, desc):
     """
     Sprawdza czy P3 poprawnie wykrywa LHS i aplikuje RHS.
     Zgodnie z diagramem: stara krawędź zostaje (R: 1->0), powstają 2 nowe krawędzie i wierzchołek V.
     """
-    graph = get_graph_with_shared_edge_marked()
+    graph = graph_func()
     
     # Liczba krawędzi E przed
     edges_before = [n for n, d in graph.nx_graph.nodes(data=True) 
                     if hasattr(d.get("data"), "label") and d.get("data").label == "E"]
     count_before = len(edges_before)
     
-    visualize_graph(graph, "P3: Przed", filepath="tests/test_p3/before_p3.png")
+    visualize_graph(graph, f"P3 ({desc}): Przed", filepath=f"tests/test_p3/before_p3_{desc}.png")
 
     p3 = ProductionP3()
     # E_shared jest jedynym kandydatem (R=1, B=0)
@@ -32,7 +36,7 @@ def test_p3_isomorphism_and_application():
     count_after = len(edges_after)
     assert count_after == count_before + 2, f"Liczba krawędzi E powinna wzrosnąć o 2 ({count_before} -> {count_after})"
     
-    visualize_graph(graph, "P3: Po", filepath="tests/test_p3/after_p3.png")
+    visualize_graph(graph, f"P3 ({desc}): Po", filepath=f"tests/test_p3/after_p3_{desc}.png")
 
     # Weryfikacja
     # 1. Stara krawędź POZOSTAJE z zaktualizowanym R
@@ -75,7 +79,7 @@ def test_p3_incorrect_b_attribute():
     """
     Testuje czy P3 ignoruje krawędzie z B=1 (brzegowe).
     """
-    graph = get_graph_with_shared_edge_marked()
+    graph = get_graph_with_shared_edge_marked_extended()
     # Psujemy graf - ustawiamy B=1 dla docelowej krawędzi
     graph.update_hyperedge("E_shared", b=1)
 
@@ -88,7 +92,7 @@ def test_p3_incorrect_r_attribute():
     """
     Testuje czy P3 ignoruje krawędzie z R=0 (nieoznaczone).
     """
-    graph = get_graph_with_shared_edge_marked()
+    graph = get_graph_with_shared_edge_marked_extended()
     graph.update_hyperedge("E_shared", r=0)
 
     p3 = ProductionP3()
@@ -100,7 +104,7 @@ def test_p3_missing_vertex():
     """
     Testuje odporność na uszkodzony graf (krawędź bez wierzchołka).
     """
-    graph = get_graph_with_shared_edge_marked()
+    graph = get_graph_with_shared_edge_marked_extended()
     # Usuwamy jeden wierzchołek połączony z E_shared (ID 2)
     # Najpierw usuwamy krawędź grafową, żeby stan był niespójny logicznie dla algorytmu
     graph.remove_edge("E_shared", 2)

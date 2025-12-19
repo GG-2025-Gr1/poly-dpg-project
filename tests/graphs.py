@@ -141,11 +141,12 @@ def get_hexagonal_test_graph():
     return g
 
 
-def get_graph_with_shared_edge_marked():
+def get_graph_with_shared_edge_marked_simple():
     """
-    Graf do testowania P3.
+    Graf do testowania P3 - wersja prosta.
     Dwa trójkąty/czworokąty współdzielące krawędź E_shared.
     E_shared ma R=1, B=0.
+    Wszystkie krawędzie zewnętrzne są brzegowe (B=1).
     """
     g = Graph()
 
@@ -189,11 +190,11 @@ def get_graph_with_shared_edge_marked():
     return g
 
 
-def get_graph_with_shared_edge_marked_complex():
+def get_graph_with_shared_edge_marked_extended():
     r"""
-    Graf do testowania P3.
+    Graf do testowania P3 - wersja rozszerzona.
     Dwa elementy Q współdzielące krawędź E_shared (R=1, B=0).
-
+    
     E_shared (1-2) jest współdzielona (B=0) i oznaczona do podziału (R=1).
     E1, E3 są brzegowe (B=1).
     E2, E4 są współdzielone (B=0) między Q1/Q2.
@@ -242,9 +243,9 @@ def get_graph_with_shared_edge_marked_complex():
     return g
 
 
-def get_pentagonal_graph_marked():
+def get_pentagonal_graph_marked_simple():
     """
-    Graf do testowania P7.
+    Graf do testowania P7 - wersja prosta.
     Jeden element P (pięciokąt) z R=1.
     Otoczony 5 krawędziami E z R=0.
     """
@@ -254,7 +255,7 @@ def get_pentagonal_graph_marked():
     import math
     radius = 2.0
     for i in range(5):
-        angle = math.radians(72 * i)
+        angle = math.radians(72 * i - 90)
         x = radius * math.cos(angle)
         y = radius * math.sin(angle)
         g.add_vertex(Vertex(uid=i+1, x=x, y=y))
@@ -278,17 +279,17 @@ def get_pentagonal_graph_marked():
     return g
 
 
-def get_pentagonal_graph_marked_complex():
+def get_pentagonal_graph_marked_extended():
     """
-    Graf do testowania P7.
+    Graf do testowania P7 - wersja rozszerzona.
     Element P (pięciokąt) z R=1 w centrum, otoczony elementami Q.
-
+    
     Struktura:
     - 1 element P (pięciokąt centralny, R=1)
     - 5 elementów Q (trójkąty na zewnątrz)
     - 5 krawędzi P-Q (współdzielone, B=0)
     - 5 krawędzi zewnętrznych Q (brzegowe, B=1)
-
+    
     P7 oznacza wszystkie 5 krawędzi P (zarówno B=0 jak i potencjalnie B=1).
     """
     g = Graph()
