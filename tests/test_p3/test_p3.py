@@ -1,12 +1,12 @@
 import pytest
 from src.productions.p3 import ProductionP3
-from tests.graphs import get_graph_with_shared_edge_marked_extended, get_graph_with_shared_edge_marked_simple
+from tests.graphs import get_graph_with_shared_edge_marked_simple, get_graph_with_shared_edge_marked_extended
 from src.utils.visualization import visualize_graph
 
 
 @pytest.mark.parametrize("graph_func,desc", [
     (get_graph_with_shared_edge_marked_simple, "simple"),
-    (get_graph_with_shared_edge_marked_extended, "complex"),
+    (get_graph_with_shared_edge_marked_extended, "extended"),
 ])
 def test_p3_isomorphism_and_application(graph_func, desc):
     """
@@ -75,11 +75,15 @@ def test_p3_isomorphism_and_application(graph_func, desc):
     assert e2_vert_ids == {2, "E_shared_v"}, "E_shared_e2 powinna łączyć V z v2"
 
 
-def test_p3_incorrect_b_attribute():
+@pytest.mark.parametrize("graph_func", [
+    get_graph_with_shared_edge_marked_simple,
+    get_graph_with_shared_edge_marked_extended,
+])
+def test_p3_incorrect_b_attribute(graph_func):
     """
     Testuje czy P3 ignoruje krawędzie z B=1 (brzegowe).
     """
-    graph = get_graph_with_shared_edge_marked_extended()
+    graph = graph_func()
     # Psujemy graf - ustawiamy B=1 dla docelowej krawędzi
     graph.update_hyperedge("E_shared", b=1)
 
@@ -88,11 +92,15 @@ def test_p3_incorrect_b_attribute():
     assert len(matches) == 0, "P3 nie powinna działać na krawędziach brzegowych (B=1)"
 
 
-def test_p3_incorrect_r_attribute():
+@pytest.mark.parametrize("graph_func", [
+    get_graph_with_shared_edge_marked_simple,
+    get_graph_with_shared_edge_marked_extended,
+])
+def test_p3_incorrect_r_attribute(graph_func):
     """
     Testuje czy P3 ignoruje krawędzie z R=0 (nieoznaczone).
     """
-    graph = get_graph_with_shared_edge_marked_extended()
+    graph = graph_func()
     graph.update_hyperedge("E_shared", r=0)
 
     p3 = ProductionP3()
@@ -100,11 +108,15 @@ def test_p3_incorrect_r_attribute():
     assert len(matches) == 0
 
 
-def test_p3_missing_vertex():
+@pytest.mark.parametrize("graph_func", [
+    get_graph_with_shared_edge_marked_simple,
+    get_graph_with_shared_edge_marked_extended,
+])
+def test_p3_missing_vertex(graph_func):
     """
     Testuje odporność na uszkodzony graf (krawędź bez wierzchołka).
     """
-    graph = get_graph_with_shared_edge_marked_extended()
+    graph = graph_func()
     # Usuwamy jeden wierzchołek połączony z E_shared (ID 2)
     # Najpierw usuwamy krawędź grafową, żeby stan był niespójny logicznie dla algorytmu
     graph.remove_edge("E_shared", 2)

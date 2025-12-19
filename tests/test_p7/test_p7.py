@@ -1,12 +1,12 @@
 import pytest
 from src.productions.p7 import ProductionP7
-from tests.graphs import get_pentagonal_graph_marked_extended, get_pentagonal_graph_marked_simple
+from tests.graphs import get_pentagonal_graph_marked_simple, get_pentagonal_graph_marked_extended
 from src.utils.visualization import visualize_graph
 
 
 @pytest.mark.parametrize("graph_func,desc", [
     (get_pentagonal_graph_marked_simple, "simple"),
-    (get_pentagonal_graph_marked_extended, "complex"),
+    (get_pentagonal_graph_marked_extended, "extended"),
 ])
 def test_p7_isomorphism_and_application(graph_func, desc):
     """
@@ -30,11 +30,15 @@ def test_p7_isomorphism_and_application(graph_func, desc):
         assert edge.r == 1, f"Krawędź {eid} powinna mieć R=1"
 
 
-def test_p7_ignored_if_r_is_zero():
+@pytest.mark.parametrize("graph_func", [
+    get_pentagonal_graph_marked_simple,
+    get_pentagonal_graph_marked_extended,
+])
+def test_p7_ignored_if_r_is_zero(graph_func):
     """
     P7 nie powinna ruszać P, który ma R=0.
     """
-    graph = get_pentagonal_graph_marked_extended()
+    graph = graph_func()
     graph.update_hyperedge("P1", r=0)
 
     p7 = ProductionP7()
@@ -42,11 +46,15 @@ def test_p7_ignored_if_r_is_zero():
     assert len(matches) == 0
 
 
-def test_p7_broken_topology_missing_vertex():
+@pytest.mark.parametrize("graph_func", [
+    get_pentagonal_graph_marked_simple,
+    get_pentagonal_graph_marked_extended,
+])
+def test_p7_broken_topology_missing_vertex(graph_func):
     """
     P7 nie powinna działać, jeśli P nie ma 5 wierzchołków.
     """
-    graph = get_pentagonal_graph_marked_extended()
+    graph = graph_func()
     # Odłączamy wierzchołek 5 od P1
     graph.remove_edge("P1", 5)
 
@@ -55,12 +63,16 @@ def test_p7_broken_topology_missing_vertex():
     assert len(matches) == 0
 
 
-def test_p7_broken_topology_missing_edge():
+@pytest.mark.parametrize("graph_func", [
+    get_pentagonal_graph_marked_simple,
+    get_pentagonal_graph_marked_extended,
+])
+def test_p7_broken_topology_missing_edge(graph_func):
     """
     P7 wymaga, aby wierzchołki P były połączone krawędziami E.
     Usuwamy jedną krawędź E3.
     """
-    graph = get_pentagonal_graph_marked_extended()
+    graph = graph_func()
     # Usuwamy E3
     graph.remove_node("E3")
 
