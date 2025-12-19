@@ -64,7 +64,7 @@ class ProductionP13(Production):
 
     def _get_boundary_edges(self, graph: Graph, vertices: list) -> List[Hyperedge]:
             """
-            Pomocnicza metoda znajdująca krawędzie 'E' łączące wierzchołki sześciokąta.
+            Pomocnicza metoda znajdująca krawędzie 'E' łączące wierzchołki siedmiokąta.
             Zakłada, że wierzchołki tworzą cykl lub są połączone krawędziami.
             """
             found_edges = set()

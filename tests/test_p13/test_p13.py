@@ -29,22 +29,27 @@ def test_p13_ignored_if_r_is_zero():
     """
     graph = get_heptagonal_graph_marked()
     graph.update_hyperedge("T", r=0)
+    visualize_graph(graph, "P13: Przed (R=0)", filepath="tests/test_p13/before_p13_r0.png")
 
     p13 = ProductionP13()
     matches = p13.find_lhs(graph)
     assert len(matches) == 0
-    
+
+    visualize_graph(graph, "P13: Po (R=0)", filepath="tests/test_p13/after_p13_r0.png")
+
 def test_p13_broken_topology_missing_vertex():
     """
     P13 nie powinna działać, jeśli T nie ma 7 wierzchołków.
     """
     graph = get_heptagonal_graph_marked()
-    # Odłączamy wierzchołek 7 od T1
     graph.remove_edge("T", 7)
+    visualize_graph(graph, "P13: Przed (brak wierzchołka)", filepath="tests/test_p13/before_p13_missing_vertex.png")
 
     p13 = ProductionP13()
     matches = p13.find_lhs(graph)
     assert len(matches) == 0
+
+    visualize_graph(graph, "P13: Po (brak wierzchołka)", filepath="tests/test_p13/after_p13_missing_vertex.png")
     
 def test_p13_broken_topology_missing_edge():
     """
@@ -52,9 +57,11 @@ def test_p13_broken_topology_missing_edge():
     Usuwamy jedną krawędź E3.
     """
     graph = get_heptagonal_graph_marked()
-    # Usuwamy E3
     graph.remove_node("E3")
+    visualize_graph(graph, "P13: Przed (brak krawędzi)", filepath="tests/test_p13/before_p13_missing_edge.png")
 
     p13 = ProductionP13()
     matches = p13.find_lhs(graph)
     assert len(matches) == 0
+    
+    visualize_graph(graph, "P13: Po (brak krawędzi)", filepath="tests/test_p13/after_p13_missing_edge.png")
