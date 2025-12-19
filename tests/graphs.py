@@ -189,7 +189,7 @@ def get_graph_with_shared_edge_marked():
     return g
 
 
-def get_graph_with_shared_edge_marked():
+def get_graph_with_shared_edge_marked_complex():
     r"""
     Graf do testowania P3.
     Dwa elementy Q współdzielące krawędź E_shared (R=1, B=0).
@@ -274,6 +274,95 @@ def get_pentagonal_graph_marked():
         g.add_hyperedge(e)
         g.connect(eid, curr)
         g.connect(eid, next_v)
+
+    return g
+
+
+def get_pentagonal_graph_marked_complex():
+    """
+    Graf do testowania P7.
+    Element P (pięciokąt) z R=1 w centrum, otoczony elementami Q.
+
+    Struktura:
+    - 1 element P (pięciokąt centralny, R=1)
+    - 5 elementów Q (trójkąty na zewnątrz)
+    - 5 krawędzi P-Q (współdzielone, B=0)
+    - 5 krawędzi zewnętrznych Q (brzegowe, B=1)
+
+    P7 oznacza wszystkie 5 krawędzi P (zarówno B=0 jak i potencjalnie B=1).
+    """
+    g = Graph()
+
+    # 5 wierzchołków pięciokąta (wewnętrzne)
+    import math
+    radius_inner = 2.0
+    pentagon_vertices = []
+    for i in range(5):
+        angle = math.radians(72 * i - 90)  # -90 żeby pierwszy był u góry
+        x = radius_inner * math.cos(angle)
+        y = radius_inner * math.sin(angle)
+        vid = i + 1
+        g.add_vertex(Vertex(uid=vid, x=x, y=y))
+        pentagon_vertices.append(vid)
+
+    # 5 wierzchołków zewnętrznych (dla trójkątów Q)
+    radius_outer = 3.5
+    outer_vertices = []
+    for i in range(5):
+        angle = math.radians(72 * i - 90)
+        x = radius_outer * math.cos(angle)
+        y = radius_outer * math.sin(angle)
+        vid = i + 6  # 6-10
+        g.add_vertex(Vertex(uid=vid, x=x, y=y))
+        outer_vertices.append(vid)
+
+    # Element P (pięciokąt centralny, R=1 - trigger dla P7)
+    p = Hyperedge(uid="P1", label="P", r=1, b=0)
+    g.add_hyperedge(p)
+    for vid in pentagon_vertices:
+        g.connect("P1", vid)
+
+    # 5 krawędzi pięciokąta (wewnętrzne krawędzie P)
+    # Te są współdzielone z trójkątami Q (B=0)
+    for i in range(5):
+        curr = pentagon_vertices[i]
+        next_v = pentagon_vertices[(i + 1) % 5]
+        eid = f"E{i+1}"
+        e = Hyperedge(uid=eid, label="E", r=0, b=0)  # B=0 - współdzielone z Q
+        g.add_hyperedge(e)
+        g.connect(eid, curr)
+        g.connect(eid, next_v)
+
+    # 5 trójkątów Q na zewnątrz + ich krawędzie
+    for i in range(5):
+        # Trójkąt składa się z:
+        # - 2 wierzchołki z pięciokąta
+        # - 1 wierzchołek zewnętrzny
+        v_inner1 = pentagon_vertices[i]
+        v_inner2 = pentagon_vertices[(i + 1) % 5]
+        v_outer = outer_vertices[i]
+
+        # Element Q (trójkąt)
+        q_id = f"Q{i+1}"
+        q = Hyperedge(uid=q_id, label="Q", r=0, b=0)
+        g.add_hyperedge(q)
+        g.connect(q_id, v_inner1)
+        g.connect(q_id, v_inner2)
+        g.connect(q_id, v_outer)
+
+        # Krawędź od v_inner1 do v_outer (brzegowa)
+        e1_id = f"E_outer_{i+1}a"
+        e1 = Hyperedge(uid=e1_id, label="E", r=0, b=1)
+        g.add_hyperedge(e1)
+        g.connect(e1_id, v_inner1)
+        g.connect(e1_id, v_outer)
+
+        # Krawędź od v_outer do v_inner2 (brzegowa)
+        e2_id = f"E_outer_{i+1}b"
+        e2 = Hyperedge(uid=e2_id, label="E", r=0, b=1)
+        g.add_hyperedge(e2)
+        g.connect(e2_id, v_outer)
+        g.connect(e2_id, v_inner2)
 
     return g
 
@@ -433,94 +522,5 @@ def get_2x2_grid_graph_marked(marked_quad_ids=[]):
         g.add_hyperedge(e)
         g.connect(eid, v1)
         g.connect(eid, v2)
-
-    return g
-
-
-def get_pentagonal_graph_marked():
-    """
-    Graf do testowania P7.
-    Element P (pięciokąt) z R=1 w centrum, otoczony elementami Q.
-
-    Struktura:
-    - 1 element P (pięciokąt centralny, R=1)
-    - 5 elementów Q (trójkąty na zewnątrz)
-    - 5 krawędzi P-Q (współdzielone, B=0)
-    - 5 krawędzi zewnętrznych Q (brzegowe, B=1)
-
-    P7 oznacza wszystkie 5 krawędzi P (zarówno B=0 jak i potencjalnie B=1).
-    """
-    g = Graph()
-
-    # 5 wierzchołków pięciokąta (wewnętrzne)
-    import math
-    radius_inner = 2.0
-    pentagon_vertices = []
-    for i in range(5):
-        angle = math.radians(72 * i - 90)  # -90 żeby pierwszy był u góry
-        x = radius_inner * math.cos(angle)
-        y = radius_inner * math.sin(angle)
-        vid = i + 1
-        g.add_vertex(Vertex(uid=vid, x=x, y=y))
-        pentagon_vertices.append(vid)
-
-    # 5 wierzchołków zewnętrznych (dla trójkątów Q)
-    radius_outer = 3.5
-    outer_vertices = []
-    for i in range(5):
-        angle = math.radians(72 * i - 90)
-        x = radius_outer * math.cos(angle)
-        y = radius_outer * math.sin(angle)
-        vid = i + 6  # 6-10
-        g.add_vertex(Vertex(uid=vid, x=x, y=y))
-        outer_vertices.append(vid)
-
-    # Element P (pięciokąt centralny, R=1 - trigger dla P7)
-    p = Hyperedge(uid="P1", label="P", r=1, b=0)
-    g.add_hyperedge(p)
-    for vid in pentagon_vertices:
-        g.connect("P1", vid)
-
-    # 5 krawędzi pięciokąta (wewnętrzne krawędzie P)
-    # Te są współdzielone z trójkątami Q (B=0)
-    for i in range(5):
-        curr = pentagon_vertices[i]
-        next_v = pentagon_vertices[(i + 1) % 5]
-        eid = f"E{i+1}"
-        e = Hyperedge(uid=eid, label="E", r=0, b=0)  # B=0 - współdzielone z Q
-        g.add_hyperedge(e)
-        g.connect(eid, curr)
-        g.connect(eid, next_v)
-
-    # 5 trójkątów Q na zewnątrz + ich krawędzie
-    for i in range(5):
-        # Trójkąt składa się z:
-        # - 2 wierzchołki z pięciokąta
-        # - 1 wierzchołek zewnętrzny
-        v_inner1 = pentagon_vertices[i]
-        v_inner2 = pentagon_vertices[(i + 1) % 5]
-        v_outer = outer_vertices[i]
-
-        # Element Q (trójkąt)
-        q_id = f"Q{i+1}"
-        q = Hyperedge(uid=q_id, label="Q", r=0, b=0)
-        g.add_hyperedge(q)
-        g.connect(q_id, v_inner1)
-        g.connect(q_id, v_inner2)
-        g.connect(q_id, v_outer)
-
-        # Krawędź od v_inner1 do v_outer (brzegowa)
-        e1_id = f"E_outer_{i+1}a"
-        e1 = Hyperedge(uid=e1_id, label="E", r=0, b=1)
-        g.add_hyperedge(e1)
-        g.connect(e1_id, v_inner1)
-        g.connect(e1_id, v_outer)
-
-        # Krawędź od v_outer do v_inner2 (brzegowa)
-        e2_id = f"E_outer_{i+1}b"
-        e2 = Hyperedge(uid=e2_id, label="E", r=0, b=1)
-        g.add_hyperedge(e2)
-        g.connect(e2_id, v_outer)
-        g.connect(e2_id, v_inner2)
 
     return g
