@@ -41,6 +41,7 @@ def test_p9_isomorphism_and_application():
 
     element_p1 = graph.get_hyperedge("P1")
     assert element_p1.r == 1, "Element P1 (S) powinien mieć R=1 po zastosowaniu P9"
+    
 
 
 def test_p9_ignored_if_element_is_already_marked_r1():
@@ -136,3 +137,17 @@ def test_p9_broken_topology_wrong_label_r0():
     matches = p9.find_lhs(graph)
 
     assert len(matches) == 0, "P9 powinna zignorować Q1, ponieważ jego label to nie 'S'"
+
+def test_p9_missing_boundary_edge():
+    """
+    P9 nie powinna działać, jeśli brakuje choć jednej krawędzi 'E' na obwodzie.
+    """
+    graph = get_graph_with_unmarked_element()
+    
+    # Usuwamy jedną krawędź brzegową (np. E1)
+    graph.remove_node("E1")
+
+    p9 = ProductionP9()
+    matches = p9.find_lhs(graph)
+    
+    assert len(matches) == 0, "P9 nie powinna znaleźć dopasowania, gdy brakuje krawędzi E"
