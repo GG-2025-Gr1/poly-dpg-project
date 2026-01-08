@@ -35,6 +35,10 @@ class ProductionP9(Production):
             
             if len(vertices) != 6:
                 continue
+            
+            edges_found = self._get_boundary_edges(graph, vertices)
+            if len(edges_found) != 6:
+                continue
 
             candidates.append(he)
 
@@ -47,3 +51,17 @@ class ProductionP9(Production):
             print(f"P9: Oznaczono element S={match_node.uid} (R=1) do rafinacji.")
         else:
             print(f"P9: Element S={match_node.uid} ma już R={match_node.r}. Brak zmian.")
+
+    def _get_boundary_edges(self, graph: Graph, vertices: list) -> List[Hyperedge]:
+        """
+        Pomocnicza metoda znajdująca krawędzie 'E' łączące wierzchołki sześciokąta.
+        """
+        found_edges = set()
+        for i in range(len(vertices)):
+            for j in range(i + 1, len(vertices)):
+                v1, v2 = vertices[i], vertices[j]
+                common_edges = graph.get_hyperedges_between_vertices(v1.uid, v2.uid)
+                for ce in common_edges:
+                    if ce.label == 'E':
+                        found_edges.add(ce)
+        return list(found_edges)        
