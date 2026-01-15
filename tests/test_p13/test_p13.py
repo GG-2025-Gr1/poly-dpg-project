@@ -17,7 +17,6 @@ def test_p13_isomorphism_and_application():
     graph = p13.apply(graph)
     visualize_graph(graph, "P13: Po", filepath="tests/test_p13/after_p13.png")
 
-    # Weryfikacja: Wszystkie 7 krawędzi E1..E7 powinno mieć teraz R=1
     for i in range(1, 8):
         eid = f"E{i}"
         edge = graph.get_hyperedge(eid)
@@ -65,3 +64,24 @@ def test_p13_broken_topology_missing_edge():
     assert len(matches) == 0
     
     visualize_graph(graph, "P13: Po (brak krawędzi)", filepath="tests/test_p13/after_p13_missing_edge.png")
+    
+def test_p13_B0():
+    """
+    Sprawdza czy P13 poprawnie oznacza krawędzie siedmiokąta.
+    """
+    graph = get_heptagonal_graph_marked()
+    graph.update_hyperedge("E3", b=0)
+    visualize_graph(graph, "P13: Przed", filepath="tests/test_p13/before_p13_b.png")
+
+    p13 = ProductionP13()
+    matches = p13.find_lhs(graph)
+    assert len(matches) == 1
+    assert matches[0].uid == "T"
+
+    graph = p13.apply(graph)
+    visualize_graph(graph, "P13: Po", filepath="tests/test_p13/after_p13_b0.png")
+
+    for i in range(1, 8):
+        eid = f"E{i}"
+        edge = graph.get_hyperedge(eid)
+        assert edge.r == 1, f"Krawędź {eid} powinna mieć R=1"
