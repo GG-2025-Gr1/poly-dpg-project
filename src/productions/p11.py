@@ -59,23 +59,15 @@ class ProductionP11(Production):
         corners = self._sort_vertices_counter_clockwise(corners)
 
         # c1..c4 to narożniki 1, 2, 3, 4 z diagramu
-        c1, c2, c3, c4 = corners[0], corners[1], corners[2], corners[3]
 
         # 2. Znajdujemy istniejące węzły środkowe (5, 6, 7, 8 z diagramu).
         # Zakładamy, że find_lhs już zweryfikował ich istnienie
-        m1 = self._find_midpoint_between(graph, c1, c2)  # między 1 a 2
-        m2 = self._find_midpoint_between(graph, c2, c3)  # między 2 a 3
-        m3 = self._find_midpoint_between(graph, c3, c4)  # między 3 a 4
-        m4 = self._find_midpoint_between(graph, c4, c1)  # między 4 a 1
         m = [
             self._find_midpoint_between(graph, corners[i], corners[(i + 1) % 6])
             for i in range(6)
         ]
 
         # 3. Obliczamy współrzędne nowego centrum (węzeł 9 - nieoznaczony, środek krzyża)
-        center_x = (c1.x + c2.x + c3.x + c4.x) / 4.0
-        center_y = (c1.y + c2.y + c3.y + c4.y) / 4.0
-
         center_x = sum(c.x for c in corners) / 6.0
         center_y = sum(c.y for c in corners) / 6.0
 
@@ -92,16 +84,6 @@ class ProductionP11(Production):
 
         # Definiujemy grupy wierzchołków dla nowych Q (zgodnie z ruchem wskazówek zegara lub CCW)
         # Ważne, aby zachować spójność topologiczną.
-        # Q1: c1 - m1 - center - m4
-        q1_nodes = [c1, m1, center_vertex, m4]
-        # Q2: m1 - c2 - m2 - center
-        q2_nodes = [m1, c2, m2, center_vertex]
-        # Q3: center - m2 - c3 - m3
-        q3_nodes = [center_vertex, m2, c3, m3]
-        # Q4: m4 - center - m3 - c4
-        q4_nodes = [m4, center_vertex, m3, c4]
-
-        quads_nodes = [q1_nodes, q2_nodes, q3_nodes, q4_nodes]
 
         quads_nodes = [[corners[i], m[i], center_vertex, m[i - 1]] for i in range(6)]
 
@@ -113,7 +95,6 @@ class ProductionP11(Production):
 
         # 6. Tworzymy 4 nowe krawędzie wewnętrzne E (R=0, B=0)
         # Łączą one węzły środkowe (m1..m4) z nowym centrum
-        midpoints = [m1, m2, m3, m4]
         midpoints = m
         for i, mid_node in enumerate(midpoints):
             e_id = f"{match_node.uid}_inner_E{i}"
