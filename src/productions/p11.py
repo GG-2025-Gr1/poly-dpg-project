@@ -26,7 +26,7 @@ class ProductionP11(Production):
             if target_id is not None and he.uid != target_id:
                 continue
 
-            # 3. Musi mieć dokładnie 4 narożniki (wierzchołki)
+            # 3. Musi mieć dokładnie 6 narożników (wierzchołków)
             corners = graph.get_hyperedge_vertices(he.uid)
             if len(corners) != 6:
                 continue
@@ -58,16 +58,16 @@ class ProductionP11(Production):
         corners = graph.get_hyperedge_vertices(match_node.uid)
         corners = self._sort_vertices_counter_clockwise(corners)
 
-        # c1..c4 to narożniki 1, 2, 3, 4 z diagramu
+        # c1..c6 to narożniki 1, 2, 3, 4, 5, 6 z diagramu
 
-        # 2. Znajdujemy istniejące węzły środkowe (5, 6, 7, 8 z diagramu).
+        # 2. Znajdujemy istniejące węzły środkowe (7, 8, 9, 10, 11, 12 z diagramu).
         # Zakładamy, że find_lhs już zweryfikował ich istnienie
         m = [
             self._find_midpoint_between(graph, corners[i], corners[(i + 1) % 6])
             for i in range(6)
         ]
 
-        # 3. Obliczamy współrzędne nowego centrum (węzeł 9 - nieoznaczony, środek krzyża)
+        # 3. Obliczamy współrzędne nowego centrum (węzeł 13 - nieoznaczony, środek krzyża)
         center_x = sum(c.x for c in corners) / 6.0
         center_y = sum(c.y for c in corners) / 6.0
 
@@ -78,7 +78,7 @@ class ProductionP11(Production):
         # 4. Usuwamy stary element Q (tylko hyperedge, wierzchołki zostają)
         graph.remove_node(match_node.uid)
 
-        # 5. Tworzymy 4 nowe elementy Q (ćwiartki) z R=0
+        # 5. Tworzymy 6 nowych elementów Q z R=0
         # Nazewnictwo ID: Q_old_0, Q_old_1...
         new_q_ids = [f"{match_node.uid}_sub_Q{i}" for i in range(6)]
 
@@ -93,8 +93,8 @@ class ProductionP11(Production):
             for node in nodes:
                 graph.connect(q_id, node.uid)
 
-        # 6. Tworzymy 4 nowe krawędzie wewnętrzne E (R=0, B=0)
-        # Łączą one węzły środkowe (m1..m4) z nowym centrum
+        # 6. Tworzymy 6 nowych krawędzi wewnętrznych E (R=0, B=0)
+        # Łączą one węzły środkowe (m1..m6) z nowym centrum
         midpoints = m
         for i, mid_node in enumerate(midpoints):
             e_id = f"{match_node.uid}_inner_E{i}"

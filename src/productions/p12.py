@@ -54,7 +54,7 @@ class ProductionP12(Production):
                 )
 
             # 5. It must be connected to exactly 4 vertices
-            if len(hyperedge_vertices) != 12:
+            if len(hyperedge_vertices) != 6:
                 if self.DEBUG:
                     print("[P12] - pomijam, nie ma 4 wierzchołków.")
                 continue
