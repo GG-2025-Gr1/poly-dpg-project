@@ -281,5 +281,67 @@ class TestProductionP8(unittest.TestCase):
                    if isinstance(d.get('data'), Hyperedge) and d.get('data').label == 'Q']
         self.assertEqual(len(q_nodes), 20, "Powinno powstać 20 elementów Q (4 elementy * 5)")
 
+    def test_p8_with_attached_structure(self):
+            """
+            Test osadzenia: Pięciokąt jest połączony z innym "zewnętrznym" fragmentem grafu.
+            Produkcja powinna zadziałać, a 'ogon' pozostać nienaruszony.
+            """
+            p_uid = self._create_valid_p8_unit()
+
+            v_tail = Vertex(uid='v_tail', x=-2, y=0)
+            e_ext = Hyperedge(uid='e_ext', label='E', r=0, b=0)
+
+            self.graph.add_vertex(v_tail)
+            self.graph.add_hyperedge(e_ext)
+            self.graph.connect('e_ext', 'v1')
+            self.graph.connect('e_ext', 'v_tail')
+
+            self.draw_graph("test_p8_scenariusz9_attached_przed.png", "Scenariusz 9: Z dołączonym ogonem (Przed)")
+
+            prod = ProductionP8()
+            matches = prod.find_lhs(self.graph)
+            self.assertEqual(len(matches), 1, "Powinno znaleźć dopasowanie mimo dołączonego ogona")
+
+            prod.apply(self.graph)
+
+            self.draw_graph("test_p8_scenariusz9_attached_po.png", "Scenariusz 9: Z dołączonym ogonem (Po)")
+
+            try:
+                self.graph.get_vertex('v_tail')
+                self.graph.get_hyperedge('e_ext')
+            except ValueError:
+                self.fail("Zewnętrzna struktura (ogon) została usunięta!")
+
+            has_edge_vtail = self.graph.nx_graph.has_edge('v_tail', 'e_ext')
+            has_edge_v1 = self.graph.nx_graph.has_edge('v1', 'e_ext')
+            
+            self.assertTrue(has_edge_vtail, "Zerwano połączenie v_tail <-> e_ext")
+            self.assertTrue(has_edge_v1, "Zerwano połączenie v1 <-> e_ext")
+
+    def test_p8_double_application(self):
+        """
+        Test ponownego użycia: Uruchamiamy produkcję, a potem próbujemy
+        uruchomić ją ponownie na tym samym grafie.
+        Za drugim razem nie powinno się nic stać (bo P już nie ma).
+        """
+        self._create_valid_p8_unit()
+        prod = ProductionP8()
+        
+        matches1 = prod.find_lhs(self.graph)
+        self.assertEqual(len(matches1), 1)
+        prod.apply(self.graph)
+        
+        num_nodes_after_1 = len(self.graph.nx_graph.nodes)
+        
+        self.draw_graph("test_p8_scenariusz10_double_po_1.png", "Scenariusz 10: Po 1. aplikacji")
+        
+        matches2 = prod.find_lhs(self.graph)
+        self.assertEqual(len(matches2), 0, "Za drugim razem nie powinno znaleźć P")
+        
+        prod.apply(self.graph)
+        
+        num_nodes_after_2 = len(self.graph.nx_graph.nodes)
+        self.assertEqual(num_nodes_after_1, num_nodes_after_2, "Druga aplikacja nie powinna zmieniać grafu")
+
 if __name__ == '__main__':
     unittest.main()
