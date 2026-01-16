@@ -19,7 +19,7 @@ This project implements a hypergraph-based system for representing and manipulat
 - **Hyperedges**: Logical elements representing mesh components
   - `Q`: Interior elements (quadrilaterals)
   - `E`: Edge elements
-  - `P`, `S`: Other element types
+  - `P`, `S`, `T`: Other element types
 - **Productions**: Graph transformation rules (e.g., P0 for marking elements for refinement)
 - **Graph**: A wrapper around NetworkX managing the hypergraph structure
 

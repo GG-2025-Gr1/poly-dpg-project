@@ -1,6 +1,7 @@
 import os
 import networkx as nx
 import matplotlib.pyplot as plt
+from PIL import Image, ImageDraw
 
 from ..graph import Graph
 from ..elements import Vertex, Hyperedge
@@ -34,8 +35,11 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
     for node_id, data in nx_graph.nodes(data=True):
         obj = data.get("data")
         if isinstance(obj, Vertex):
-            pos[node_id] = (obj.x, obj.y)
-            vertex_nodes.append(node_id)
+            x, y = obj.x, obj.y
+            # Offset dla hanging nodes - aby nie nakładały się z krawędziami
+            if obj.hanging:
+                y += 0.2
+            pos[node_id] = (x, y)
 
     # 1b. Hyperedge positions (centroids of neighbors)
     for node_id, data in nx_graph.nodes(data=True):
@@ -164,3 +168,71 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
         plt.close()
     else:
         plt.show()
+
+
+def merge_images_with_arrow(
+    before_path: str, after_path: str, output_path: str, arrow_width: int = 100
+):
+    """
+    Merges two images side by side with an arrow pointing from the first to the second.
+
+    Args:
+        before_path: Path to the first image (before state)
+        after_path: Path to the second image (after state)
+        output_path: Path where the merged image should be saved
+        arrow_width: Width of the arrow area between images (default: 100 pixels)
+    """
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(current_dir, "..", ".."))
+    output_dir = os.path.join(project_root, "visualizations")
+
+    dir_only, filename_only = os.path.split(output_path)
+    if dir_only:
+        output_dir = os.path.join(output_dir, dir_only)
+        os.makedirs(output_dir, exist_ok=True)
+
+    # Load images
+    img1 = Image.open(os.path.join(output_dir, before_path))
+    img2 = Image.open(os.path.join(output_dir, after_path))
+
+    # Resize images to same height if needed
+    max_height = max(img1.height, img2.height)
+    if img1.height != max_height:
+        aspect_ratio = img1.width / img1.height
+        img1 = img1.resize((int(max_height * aspect_ratio), max_height), Image.LANCZOS)
+    if img2.height != max_height:
+        aspect_ratio = img2.width / img2.height
+        img2 = img2.resize((int(max_height * aspect_ratio), max_height), Image.LANCZOS)
+
+    # Create new image with space for arrow
+    total_width = img1.width + arrow_width + img2.width
+    merged_img = Image.new("RGB", (total_width, max_height), "white")
+
+    # Paste images
+    merged_img.paste(img1, (0, 0))
+    merged_img.paste(img2, (img1.width + arrow_width, 0))
+
+    # Draw arrow
+    draw = ImageDraw.Draw(merged_img)
+    arrow_start_x = img1.width + 10
+    arrow_end_x = img1.width + arrow_width - 10
+    arrow_y = max_height // 2
+
+    # Arrow line
+    draw.line([(arrow_start_x, arrow_y), (arrow_end_x, arrow_y)], fill="black", width=3)
+
+    # Arrow head
+    arrow_head_size = 15
+    draw.polygon(
+        [
+            (arrow_end_x, arrow_y),
+            (arrow_end_x - arrow_head_size, arrow_y - arrow_head_size),
+            (arrow_end_x - arrow_head_size, arrow_y + arrow_head_size),
+        ],
+        fill="black",
+    )
+
+    # Save merged image
+    full_output_path = os.path.join(output_dir, filename_only)
+    merged_img.save(full_output_path)
+    print(f"Zapisano połączoną wizualizację do pliku: {full_output_path}")

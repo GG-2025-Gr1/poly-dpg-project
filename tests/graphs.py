@@ -141,11 +141,12 @@ def get_hexagonal_test_graph():
     return g
 
 
-def get_graph_with_shared_edge_marked():
+def get_graph_with_shared_edge_marked_simple():
     """
-    Graf do testowania P3.
+    Graf do testowania P3 - wersja prosta.
     Dwa trójkąty/czworokąty współdzielące krawędź E_shared.
     E_shared ma R=1, B=0.
+    Wszystkie krawędzie zewnętrzne są brzegowe (B=1).
     """
     g = Graph()
 
@@ -189,9 +190,62 @@ def get_graph_with_shared_edge_marked():
     return g
 
 
-def get_pentagonal_graph_marked():
+def get_graph_with_shared_edge_marked_extended():
+    r"""
+    Graf do testowania P3 - wersja rozszerzona.
+    Dwa elementy Q współdzielące krawędź E_shared (R=1, B=0).
+    
+    E_shared (1-2) jest współdzielona (B=0) i oznaczona do podziału (R=1).
+    E1, E3 są brzegowe (B=1).
+    E2, E4 są współdzielone (B=0) między Q1/Q2.
     """
-    Graf do testowania P7.
+    g = Graph()
+
+    # Wierzchołki
+    v1 = Vertex(uid=1, x=0, y=0)
+    v2 = Vertex(uid=2, x=2, y=0)
+    v3 = Vertex(uid=3, x=1, y=2)
+    v4 = Vertex(uid=4, x=1, y=-2)
+
+    for v in [v1, v2, v3, v4]:
+        g.add_vertex(v)
+
+    # Krawędź współdzielona (do podziału) - między Q1 i Q2
+    e_shared = Hyperedge(uid="E_shared", label="E", r=1, b=0)
+    g.add_hyperedge(e_shared)
+    g.connect("E_shared", 1)
+    g.connect("E_shared", 2)
+
+    # Krawędzie - mix brzegowych i współdzielonych
+    edges = [
+        ("E1", 1, 3, 1),  # Brzegowa (zewnętrzna lewa)
+        ("E2", 3, 2, 0),  # Współdzielona (między Q1 a potencjalnym Q3)
+        ("E3", 2, 4, 1),  # Brzegowa (zewnętrzna prawa)
+        ("E4", 4, 1, 0),  # Współdzielona (między Q2 a potencjalnym Q4)
+    ]
+    for eid, vid1, vid2, b_flag in edges:
+        e = Hyperedge(uid=eid, label="E", r=0, b=b_flag)
+        g.add_hyperedge(e)
+        g.connect(eid, vid1)
+        g.connect(eid, vid2)
+
+    # Elementy wnętrza (Q1 góra, Q2 dół)
+    q1 = Hyperedge(uid="Q1", label="Q", r=0, b=0)  # Górny trójkąt
+    g.add_hyperedge(q1)
+    for vid in [1, 2, 3]:
+        g.connect("Q1", vid)
+
+    q2 = Hyperedge(uid="Q2", label="Q", r=0, b=0)  # Dolny trójkąt
+    g.add_hyperedge(q2)
+    for vid in [1, 2, 4]:
+        g.connect("Q2", vid)
+
+    return g
+
+
+def get_pentagonal_graph_marked_simple():
+    """
+    Graf do testowania P7 - wersja prosta.
     Jeden element P (pięciokąt) z R=1.
     Otoczony 5 krawędziami E z R=0.
     """
@@ -201,7 +255,7 @@ def get_pentagonal_graph_marked():
     import math
     radius = 2.0
     for i in range(5):
-        angle = math.radians(72 * i)
+        angle = math.radians(72 * i - 90)
         x = radius * math.cos(angle)
         y = radius * math.sin(angle)
         g.add_vertex(Vertex(uid=i+1, x=x, y=y))
@@ -223,6 +277,96 @@ def get_pentagonal_graph_marked():
         g.connect(eid, next_v)
 
     return g
+
+
+def get_pentagonal_graph_marked_extended():
+    """
+    Graf do testowania P7 - wersja rozszerzona.
+    Element P (pięciokąt) z R=1 w centrum, otoczony elementami Q.
+    
+    Struktura:
+    - 1 element P (pięciokąt centralny, R=1)
+    - 5 elementów Q (trójkąty na zewnątrz)
+    - 5 krawędzi P-Q (współdzielone, B=0)
+    - 5 krawędzi zewnętrznych Q (brzegowe, B=1)
+    
+    P7 oznacza wszystkie 5 krawędzi P (zarówno B=0 jak i potencjalnie B=1).
+    """
+    g = Graph()
+
+    # 5 wierzchołków pięciokąta (wewnętrzne)
+    import math
+    radius_inner = 2.0
+    pentagon_vertices = []
+    for i in range(5):
+        angle = math.radians(72 * i - 90)  # -90 żeby pierwszy był u góry
+        x = radius_inner * math.cos(angle)
+        y = radius_inner * math.sin(angle)
+        vid = i + 1
+        g.add_vertex(Vertex(uid=vid, x=x, y=y))
+        pentagon_vertices.append(vid)
+
+    # 5 wierzchołków zewnętrznych (dla trójkątów Q)
+    radius_outer = 3.5
+    outer_vertices = []
+    for i in range(5):
+        angle = math.radians(72 * i - 90)
+        x = radius_outer * math.cos(angle)
+        y = radius_outer * math.sin(angle)
+        vid = i + 6  # 6-10
+        g.add_vertex(Vertex(uid=vid, x=x, y=y))
+        outer_vertices.append(vid)
+
+    # Element P (pięciokąt centralny, R=1 - trigger dla P7)
+    p = Hyperedge(uid="P1", label="P", r=1, b=0)
+    g.add_hyperedge(p)
+    for vid in pentagon_vertices:
+        g.connect("P1", vid)
+
+    # 5 krawędzi pięciokąta (wewnętrzne krawędzie P)
+    # Te są współdzielone z trójkątami Q (B=0)
+    for i in range(5):
+        curr = pentagon_vertices[i]
+        next_v = pentagon_vertices[(i + 1) % 5]
+        eid = f"E{i+1}"
+        e = Hyperedge(uid=eid, label="E", r=0, b=0)  # B=0 - współdzielone z Q
+        g.add_hyperedge(e)
+        g.connect(eid, curr)
+        g.connect(eid, next_v)
+
+    # 5 trójkątów Q na zewnątrz + ich krawędzie
+    for i in range(5):
+        # Trójkąt składa się z:
+        # - 2 wierzchołki z pięciokąta
+        # - 1 wierzchołek zewnętrzny
+        v_inner1 = pentagon_vertices[i]
+        v_inner2 = pentagon_vertices[(i + 1) % 5]
+        v_outer = outer_vertices[i]
+
+        # Element Q (trójkąt)
+        q_id = f"Q{i+1}"
+        q = Hyperedge(uid=q_id, label="Q", r=0, b=0)
+        g.add_hyperedge(q)
+        g.connect(q_id, v_inner1)
+        g.connect(q_id, v_inner2)
+        g.connect(q_id, v_outer)
+
+        # Krawędź od v_inner1 do v_outer (brzegowa)
+        e1_id = f"E_outer_{i+1}a"
+        e1 = Hyperedge(uid=e1_id, label="E", r=0, b=1)
+        g.add_hyperedge(e1)
+        g.connect(e1_id, v_inner1)
+        g.connect(e1_id, v_outer)
+
+        # Krawędź od v_outer do v_inner2 (brzegowa)
+        e2_id = f"E_outer_{i+1}b"
+        e2 = Hyperedge(uid=e2_id, label="E", r=0, b=1)
+        g.add_hyperedge(e2)
+        g.connect(e2_id, v_outer)
+        g.connect(e2_id, v_inner2)
+
+    return g
+
 
 def get_hexagonal_graph_marked():
     """
@@ -258,7 +402,37 @@ def get_hexagonal_graph_marked():
         g.connect(eid, next_v)
 
     return g
-  
+
+
+def get_heptagonal_graph_marked():
+    """
+    Graf do testowania P13.
+    Jeden element T (siedmiokąt) z R=1.
+    Otoczony 5 krawędziami E z R=0.
+    """
+    g = Graph()
+
+    # Wierzchołki
+    vertices = [Vertex(uid=i, x=math.cos(2 * math.pi / 7 * i), y=math.sin(2 * math.pi / 7 * i)) for i in range(1, 8)]
+    for v in vertices:
+        g.add_vertex(v)
+
+    # Element T (siedmiokąt)
+    t = Hyperedge(uid="T", label="T", r=1, b=0)
+    g.add_hyperedge(t)
+    for v in vertices:
+        g.connect("T", v.uid)
+
+    # Krawędzie E (R=0)
+    for i in range(7):
+        e = Hyperedge(uid=f"E{i+1}", label="E", r=0, b=1)
+        g.add_hyperedge(e)
+        g.connect(e.uid, vertices[i].uid)
+        g.connect(e.uid, vertices[(i + 1) % 7].uid)
+
+    return g
+
+
 def get_2x2_grid_graph_marked(marked_quad_ids=[]):
     """
     Tworzy siatkę 2x2 elementy (4 czworokąty).
@@ -269,12 +443,12 @@ def get_2x2_grid_graph_marked(marked_quad_ids=[]):
     4 -- 5 -- 6  (y=1.0)
     | Q1 | Q2 |
     1 -- 2 -- 3  (y=0.0)
-    
+
     marked_quad_ids: lista ID czworokątów (Q), które mają mieć R=1.
     """
     if not marked_quad_ids:
         return get_2x2_grid_graph()
-    
+
     g = Graph()
 
     # --- 1. Wierzchołki (Vertex) ---

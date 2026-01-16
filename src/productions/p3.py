@@ -7,7 +7,9 @@ from .production import Production
 class ProductionP3(Production):
     """
     P3: Podział krawędzi współdzielonej (B=0), która jest oznaczona do podziału (R=1).
-    Wstawia nowy wierzchołek w połowie krawędzi i dzieli ją na dwie mniejsze (R=0).
+    Aktualizuje R starej krawędzi (R: 1->0), dodaje wierzchołek V w środku
+    i tworzy 2 nowe krawędzie łączące V z końcami (R=0, B=0).
+    Stara krawędź POZOSTAJE (zgodnie z diagramem - 3 krawędzie E po RHS).
     """
 
     def find_lhs(self, graph: Graph, target_id: Union[int, str] = None) -> List[Hyperedge]:
@@ -54,7 +56,7 @@ class ProductionP3(Production):
         new_y = (v1.y + v2.y) / 2.0
 
         # Tworzymy unikalne ID dla nowych elementów
-        new_v_uid = f"{match_node.uid}_v_new"
+        new_v_uid = f"{match_node.uid}_v"
         new_e1_uid = f"{match_node.uid}_e1"
         new_e2_uid = f"{match_node.uid}_e2"
 
@@ -64,11 +66,12 @@ class ProductionP3(Production):
         new_vertex = Vertex(uid=new_v_uid, x=new_x, y=new_y, hanging=True)
         graph.add_vertex(new_vertex)
 
-        # 3. Usuwamy starą krawędź
-        # Najpierw usuwamy połączenia w grafie, potem węzeł hiperkrawędzi
-        graph.remove_node(match_node.uid)
+        # 3. Aktualizujemy starą krawędź - ZOSTAJE, tylko zmienia R: 1->0
+        # Zgodnie z diagramem stara krawędź (1-2) pozostaje z zaktualizowanym R
+        graph.update_hyperedge(match_node.uid, r=0)
 
-        # 4. Tworzymy dwie nowe krawędzie (R=0, B=0 - dziedziczą B=0, resetują R)
+        # 4. Tworzymy dwie nowe krawędzie (R=0, B=0) łączące V z końcami
+        # Te są dodatkowymi połączeniami do nowego wierzchołka V
         e1 = Hyperedge(uid=new_e1_uid, label="E", r=0, b=0)
         e2 = Hyperedge(uid=new_e2_uid, label="E", r=0, b=0)
 
@@ -84,4 +87,4 @@ class ProductionP3(Production):
         graph.connect(new_e2_uid, new_v_uid)
         graph.connect(new_e2_uid, v2.uid)
 
-        print(f"-> P3: Podzielono krawędź {match_node.uid} na {new_e1_uid} i {new_e2_uid}.")
+        print(f"-> P3: Zaktualizowano {match_node.uid} (R->0) i dodano V z krawędziami {new_e1_uid}, {new_e2_uid}.")
