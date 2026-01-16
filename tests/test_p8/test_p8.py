@@ -193,5 +193,93 @@ class TestProductionP8(unittest.TestCase):
         matches = prod.find_lhs(self.graph)
         self.assertEqual(len(matches), 0, "P musi mieć 5 narożników")
 
+    def test_p8_target_id(self):
+        """
+        Test parametru target_id: W grafie są dwa elementy P gotowe do podziału,
+        ale chcemy podzielić tylko jeden z nich.
+        """
+        # Tworzymy dwa niezależne elementy P8
+        uid_a = self._create_valid_p8_unit(offset_x=0, suffix="_A")
+        uid_b = self._create_valid_p8_unit(offset_x=10, suffix="_B")
+        
+        self.draw_graph("test_p8_scenariusz7_target_id_przed.png", "Scenariusz 7: Przed (celujemy tylko w A)")
+
+        prod = ProductionP8()
+        # Wyszukujemy tylko dla konkretnego ID (uid_a)
+        matches = prod.find_lhs(self.graph, target_id=uid_a)
+        
+        self.assertEqual(len(matches), 1, "Powinno znaleźć tylko jedno dopasowanie dla podanego target_id")
+        self.assertEqual(matches[0]['p_hyperedge'].uid, uid_a, "Znalezione dopasowanie powinno dotyczyć elementu A")
+        
+        prod.apply(self.graph, target_id=uid_a)
+        
+        self.draw_graph("test_p8_scenariusz7_target_id_po.png", "Scenariusz 7: Po (tylko A podzielone)")
+        
+        # Sprawdzenie: A powinno zniknąć (zostać podzielone), B powinno zostać bez zmian
+        with self.assertRaises(ValueError):
+            self.graph.get_hyperedge(uid_a) # A nie istnieje
+            
+        p_b = self.graph.get_hyperedge(uid_b) # B istnieje
+        self.assertEqual(p_b.r, 1, "Element B powinien pozostać nienaruszony (R=1)")
+
+    def test_p8_preserves_original_vertices(self):
+        """
+        Test weryfikujący, czy oryginalne wierzchołki (narożniki i midpointy)
+        nie zostały usunięte ani przesunięte podczas produkcji.
+        """
+        self._create_valid_p8_unit()
+        
+        # Zapamiętujemy stan wierzchołków przed produkcją
+        original_vertices = {}
+        for n, d in self.graph.nx_graph.nodes(data=True):
+            if isinstance(d.get('data'), Vertex):
+                v = d.get('data')
+                original_vertices[v.uid] = (v.x, v.y)
+        
+        prod = ProductionP8()
+        prod.apply(self.graph)
+        
+        # Sprawdzamy stan po produkcji
+        for uid, (old_x, old_y) in original_vertices.items():
+            # Wierzchołek musi nadal istnieć
+            try:
+                v_new = self.graph.get_vertex(uid)
+            except ValueError:
+                self.fail(f"Wierzchołek {uid} został usunięty, a powinien zostać zachowany!")
+            
+            # Współrzędne muszą być identyczne
+            self.assertEqual(v_new.x, old_x, f"Współrzędna X wierzchołka {uid} uległa zmianie")
+            self.assertEqual(v_new.y, old_y, f"Współrzędna Y wierzchołka {uid} uległa zmianie")
+
+    def test_p8_multiple_applications(self):
+        """
+        Test masowy: Sprawdza, czy w grafie zawierającym wiele (np. 4) elementów P8,
+        wszystkie zostaną poprawnie przetworzone w jednym przebiegu.
+        """
+        # Tworzymy siatkę 4 elementów
+        self._create_valid_p8_unit(offset_x=0, offset_y=0, suffix="_1")
+        self._create_valid_p8_unit(offset_x=5, offset_y=0, suffix="_2")
+        self._create_valid_p8_unit(offset_x=0, offset_y=5, suffix="_3")
+        self._create_valid_p8_unit(offset_x=5, offset_y=5, suffix="_4")
+        
+        self.draw_graph("test_p8_scenariusz8_multi_przed.png", "Scenariusz 8: 4 elementy (Przed)")
+        
+        prod = ProductionP8()
+        matches = prod.find_lhs(self.graph)
+        self.assertEqual(len(matches), 4, "Powinno znaleźć 4 elementy do podziału")
+        
+        prod.apply(self.graph)
+        
+        self.draw_graph("test_p8_scenariusz8_multi_po.png", "Scenariusz 8: 4 elementy (Po)")
+        
+        # Weryfikacja: nie powinno być już żadnego P, powinno być 4 * 5 = 20 Q
+        p_nodes = [n for n, d in self.graph.nx_graph.nodes(data=True) 
+                   if isinstance(d.get('data'), Hyperedge) and d.get('data').label == 'P']
+        self.assertEqual(len(p_nodes), 0, "Wszystkie elementy P powinny zostać przetworzone")
+        
+        q_nodes = [n for n, d in self.graph.nx_graph.nodes(data=True) 
+                   if isinstance(d.get('data'), Hyperedge) and d.get('data').label == 'Q']
+        self.assertEqual(len(q_nodes), 20, "Powinno powstać 20 elementów Q (4 elementy * 5)")
+
 if __name__ == '__main__':
     unittest.main()
