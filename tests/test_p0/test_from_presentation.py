@@ -1,6 +1,7 @@
 import pytest
 
 from src.productions.p0 import ProductionP0
+from src.utils.visualization import visualize_graph, merge_images_with_arrow
 from tests.graphs import get_2x2_grid_graph
 
 POSSIBLE_Q_IDS = ["Q1", "Q2", "Q3", "Q4"]
@@ -22,8 +23,29 @@ def test_2x2_grid_p0_on_specific_q(target_q_id):
     graph = get_2x2_grid_graph()
     p0 = ProductionP0()
 
+    # Visualize before applying P0
+    visualize_graph(
+        graph,
+        f"Before P0 - {target_q_id}",
+        f"tests/test_p0/from_presentation/before_p0_{target_q_id}.png",
+    )
+
     # Apply P0 to specific Q
     result_graph = p0.apply(graph, target_id=target_q_id)
+
+    # Visualize after applying P0
+    visualize_graph(
+        result_graph,
+        f"After P0 - {target_q_id}",
+        f"tests/test_p0/from_presentation/after_p0_{target_q_id}.png",
+    )
+
+    # Merge before and after images
+    merge_images_with_arrow(
+        f"before_p0_{target_q_id}.png",
+        f"after_p0_{target_q_id}.png",
+        f"tests/test_p0/from_presentation/merged_p0_{target_q_id}.png",
+    )
 
     # Check that the target Q has R=1
     target_hyperedge = result_graph.get_hyperedge(target_q_id)
@@ -41,8 +63,29 @@ def test_2x2_grid_p0_automatic_all_candidates():
     graph = get_2x2_grid_graph()
     p0 = ProductionP0()
 
+    # Visualize before applying P0
+    visualize_graph(
+        graph,
+        "Before P0 - All Candidates",
+        "tests/test_p0/from_presentation/before_p0_all_candidates.png",
+    )
+
     # Apply P0 without specifying target_id (should apply to all candidates)
     result_graph = p0.apply(graph)
+
+    # Visualize after applying P0
+    visualize_graph(
+        result_graph,
+        "After P0 - All Candidates",
+        "tests/test_p0/from_presentation/after_p0_all_candidates.png",
+    )
+
+    # Merge before and after images
+    merge_images_with_arrow(
+        "before_p0_all_candidates.png",
+        "after_p0_all_candidates.png",
+        "tests/test_p0/from_presentation/merged_p0_all_candidates.png",
+    )
 
     for q_id in POSSIBLE_Q_IDS:
         hyperedge = result_graph.get_hyperedge(q_id)
@@ -60,8 +103,29 @@ def test_2x2_grid_p0_automatic_one_q_modified_to_e():
 
     p0 = ProductionP0()
 
+    # Visualize before applying P0
+    visualize_graph(
+        graph,
+        "Before P0 - Q Modified to E",
+        "tests/test_p0/from_presentation/before_p0_q_modified_to_e.png",
+    )
+
     # Apply P0 without specifying target_id (should apply to all candidates)
     result_graph = p0.apply(graph)
+
+    # Visualize after applying P0
+    visualize_graph(
+        result_graph,
+        "After P0 - Q Modified to E",
+        "tests/test_p0/from_presentation/after_p0_q_modified_to_e.png",
+    )
+
+    # Merge before and after images
+    merge_images_with_arrow(
+        "before_p0_q_modified_to_e.png",
+        "after_p0_q_modified_to_e.png",
+        "tests/test_p0/from_presentation/merged_p0_q_modified_to_e.png",
+    )
 
     # Check that the modified Q hyperedge is not processed
     modified_hyperedge = result_graph.get_hyperedge(Q_HYPEREDGE_TO_MODIFY)
@@ -91,8 +155,29 @@ def test_2x2_grid_p0_automatic_one_edge_removed():
 
     p0 = ProductionP0()
 
+    # Visualize before applying P0
+    visualize_graph(
+        graph,
+        "Before P0 - Edge Removed",
+        "tests/test_p0/from_presentation/before_p0_edge_removed.png",
+    )
+
     # Apply P0 without specifying target_id (should apply to all candidates)
     result_graph = p0.apply(graph)
+
+    # Visualize after applying P0
+    visualize_graph(
+        result_graph,
+        "After P0 - Edge Removed",
+        "tests/test_p0/from_presentation/after_p0_edge_removed.png",
+    )
+
+    # Merge before and after images
+    merge_images_with_arrow(
+        "before_p0_edge_removed.png",
+        "after_p0_edge_removed.png",
+        "tests/test_p0/from_presentation/merged_p0_edge_removed.png",
+    )
 
     # Check that the modified Q hyperedge is not processed
     modified_hyperedge = result_graph.get_hyperedge(EDGE_TO_REMOVE[0])
@@ -138,8 +223,29 @@ def test_2x2_grid_p0_automatic_one_vertex_removed():
 
     p0 = ProductionP0()
 
+    # Visualize before applying P0
+    visualize_graph(
+        graph,
+        "Before P0 - Vertex Removed",
+        "tests/test_p0/from_presentation/before_p0_vertex_removed.png",
+    )
+
     # Apply P0 without specifying target_id (should apply to all candidates)
     result_graph = p0.apply(graph)
+
+    # Visualize after applying P0
+    visualize_graph(
+        result_graph,
+        "After P0 - Vertex Removed",
+        "tests/test_p0/from_presentation/after_p0_vertex_removed.png",
+    )
+
+    # Merge before and after images
+    merge_images_with_arrow(
+        "before_p0_vertex_removed.png",
+        "after_p0_vertex_removed.png",
+        "tests/test_p0/from_presentation/merged_p0_vertex_removed.png",
+    )
 
     # Check that the modified Q hyperedge is not processed
     modified_hyperedge = result_graph.get_hyperedge(MODIFIED_HYPEREDGE)
