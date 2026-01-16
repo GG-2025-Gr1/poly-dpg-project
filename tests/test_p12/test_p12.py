@@ -23,11 +23,12 @@ def create_base_graph():
         Vertex(4, 4, 8),
         Vertex(5, 14, 4),
         Vertex(6, 0, 4),
+        Vertex(7, 7, 0),
     ]
 
     # Midpoints (wiszące)
     m = [
-        Vertex(7, 7, 0, hanging=True),
+        # Vertex(7, 7, 0, hanging=True),
     ]
 
     for x in v:
@@ -39,18 +40,18 @@ def create_base_graph():
     # Element Q (R=1)
     q = Hyperedge("Q1", "Q", r=0, b=0)
     graph.add_hyperedge(q)
-    for i in range(1, 7):
+    for i in range(1, 8):
         graph.connect("Q1", i)
 
     # Krawędzie obwodu (niezbędne dla P11)
     edges = [
-        ("E1a", 1, 7),
-        ("E1b", 7, 2),
-        ("E2", 2, 5),
-        ("E3", 5, 3),
-        ("E4", 3, 4),
-        ("E5", 4, 6),
-        ("E6", 6, 1),
+        ("E1", 1, 7),
+        ("E2", 7, 2),
+        ("E3", 2, 5),
+        ("E4", 5, 3),
+        ("E5", 3, 4),
+        ("E6", 4, 6),
+        ("E7", 6, 1),
     ]
     for e, u, v in edges:
         graph.add_hyperedge(Hyperedge(e, "E", 0, 1))
@@ -81,7 +82,7 @@ def test_vis_standard_execution():
 
 
 # === SCENARIUSZ 2: BŁĘDNA WARTOŚĆ R ===
-def test_vis_standard_execution():
+def test_vis_bad_r_value():
     """Generuje obrazek niepoprawnergo grafu (zła wartość R dla wierzchołka Q)"""
     graph = create_base_graph()
     graph.update_hyperedge("Q1", r=2)
@@ -111,6 +112,27 @@ def test_vis_error_missing_vertex():
         graph,
         "P12 Error: Brak wierzcholka 10",
         f"{VIS_DIR}/scenariusz3_error_brak_v.png",
+    )
+
+    # Próba wykonania (nie powinna nic zmienić)
+    p12 = ProductionP12()
+    matches = p12.find_lhs(graph)
+    assert len(matches) == 0  # Upewniamy się w teście, że nie działa
+
+
+#
+# === SCENARIUSZ 4: BŁĄD - BRAK KRAWEDZI ===
+def test_vis_error_missing_edge():
+    """Generuje obrazek niepoprawnego grafu (brak jednego mid-pointa)."""
+    graph = create_base_graph()
+
+    # Usuwamy krawędź między wierzchołkami 1 a 7
+    graph.remove_node("E1")
+
+    visualize_graph(
+        graph,
+        "P12 Error: Brak krawedzi miedzy 1 a 7",
+        f"{VIS_DIR}/scenariusz3_error_brak_e.png",
     )
 
     # Próba wykonania (nie powinna nic zmienić)

@@ -1,8 +1,9 @@
+import math
 from typing import List, Union
 
 from .production import Production
 from ..graph import Graph
-from ..elements import Hyperedge
+from ..elements import Hyperedge, Vertex
 
 
 class ProductionP12(Production):
@@ -53,60 +54,33 @@ class ProductionP12(Production):
                     f"[P12] - znalezione wierzchołki hiperkrawędzi: {hyperedge_vertices}"
                 )
 
-            # 5. It must be connected to exactly 4 vertices
-            if len(hyperedge_vertices) != 6:
+            # 5. It must be connected to exactly 7 vertices
+            if len(hyperedge_vertices) != 7:
                 if self.DEBUG:
-                    print("[P12] - pomijam, nie ma 4 wierzchołków.")
+                    print("[P12] - pomijam, nie ma 6 wierzchołków.")
                 continue
 
+            sorted_vertices = self._sort_vertices_counter_clockwise(hyperedge_vertices)
+
             should_continue = False
-            for vertex in hyperedge_vertices:
+            for i, vertex in enumerate(sorted_vertices):
                 if self.DEBUG:
                     print(f"[P12] - sprawdzam wierzchołek {vertex}")
-                vertex_neighbors = graph.get_neighbors(vertex.uid)
+                hyperedges = graph.get_hyperedges_between_vertices(
+                    vertex_uid1=vertex.uid, vertex_uid2=sorted_vertices[(i + 1) % 7].uid
+                )
+
                 if self.DEBUG:
                     print(
-                        f"[P12] - sprawdzam sąsiadów wierzchołka {vertex}: {vertex_neighbors}"
+                        f"[P12] -- hiperkrawędzie między {vertex.uid} a {sorted_vertices[(i + 1) % 7].uid}: {hyperedges}"
                     )
-                for vertex_neighbor in vertex_neighbors:
-                    hyperedges = graph.get_hyperedges_between_vertices(
-                        vertex_uid1=vertex.uid, vertex_uid2=vertex_neighbor.uid
-                    )
+
+                if len(list(filter(lambda he: he.label == "E", hyperedges))) == 0:
+                    should_continue = True
                     if self.DEBUG:
                         print(
-                            f"[P12] -- hiperkrawędzie między {vertex.uid} a {vertex_neighbor.uid}: {hyperedges}"
+                            "[P12] - pomijam, brak hiperkrawędzi E między wierzchołkami."
                         )
-                    if vertex_neighbor not in hyperedge_vertices:
-                        if self.DEBUG:
-                            print(
-                                f"[P12] - sąsiad {vertex_neighbor} nie należy do analizowanych wierzchołków, nie trzeba go brać pod uwagę."
-                            )
-                        continue
-
-                    # Those 4 vertices must be connected by at least one of the following cases:
-                    #   Case 1. Q hyperedge between pair of vertices (diagonal case)
-                    #   Case 2. Q and E hyperedges between pair of vertices (edge case)
-                    if hyperedge_obj not in hyperedges:
-                        should_continue = True
-                        if self.DEBUG:
-                            print(
-                                f"[P12] - pomijam, hiperkrawędź {hyperedge_obj} nie łączy tych wierzchołków."
-                            )
-                        break
-
-                    hyperedges.remove(hyperedge_obj)
-
-                    if (
-                        len(hyperedges) != 0
-                        and len(list(filter(lambda he: he.label == "E", hyperedges)))
-                        == 0
-                    ):
-                        should_continue = True
-                        if self.DEBUG:
-                            print(
-                                "[P12] - pomijam, brak hiperkrawędzi E między wierzchołkami."
-                            )
-                        break
 
                 if should_continue:
                     break
@@ -122,3 +96,17 @@ class ProductionP12(Production):
     def apply_rhs(self, graph: Graph, match_node: Hyperedge):
         graph.update_hyperedge(match_node.uid, r=1)
         print(f"-> P12: Oznaczono element {match_node.uid} do podziału (R=1).")
+
+    def _sort_vertices_counter_clockwise(self, vertices: List[Vertex]) -> List[Vertex]:
+        """Sortuje wierzchołki geometrycznie wokół ich środka ciężkości."""
+        if not vertices:
+            return []
+
+        # Środek ciężkości
+        cx = sum(v.x for v in vertices) / len(vertices)
+        cy = sum(v.y for v in vertices) / len(vertices)
+
+        def angle_from_center(v):
+            return math.atan2(v.y - cy, v.x - cx)
+
+        return sorted(vertices, key=angle_from_center)
