@@ -27,10 +27,10 @@ def create_base_graph():
     for x in v:
         graph.add_vertex(x)
 
-    q = Hyperedge("Q1", "Q", r=0, b=0)
-    graph.add_hyperedge(q)
+    t = Hyperedge("T1", "T", r=0, b=0)
+    graph.add_hyperedge(t)
     for i in range(1, 8):
-        graph.connect("Q1", i)
+        graph.connect("T1", i)
 
     edges = [
         ("E1", 1, 2),
@@ -55,20 +55,20 @@ def test_vis_standard_execution():
 
     visualize_graph(graph, "P12: LHS (Standard)", f"{VIS_DIR}/scenariusz1_przed.png")
 
-    assert graph.get_hyperedge("Q1").r == 0
+    assert graph.get_hyperedge("T1").r == 0
 
     p12 = ProductionP12()
     p12.apply(graph)
 
-    assert graph.get_hyperedge("Q1").r == 1
+    assert graph.get_hyperedge("T1").r == 1
 
     visualize_graph(graph, "P12: RHS (Standard)", f"{VIS_DIR}/scenariusz1_po.png")
 
 
 def test_vis_bad_r_value():
-    """Generuje obrazek niepoprawnergo grafu (zła wartość R dla wierzchołka Q)"""
+    """Generuje obrazek niepoprawnergo grafu (zła wartość R dla wierzchołka T)"""
     graph = create_base_graph()
-    graph.update_hyperedge("Q1", r=2)
+    graph.update_hyperedge("T1", r=2)
 
     visualize_graph(
         graph, "P12: LHS (Błędna etykieta)", f"{VIS_DIR}/scenariusz2_przed.png"
@@ -77,27 +77,7 @@ def test_vis_bad_r_value():
     p12 = ProductionP12()
     p12.apply(graph)
 
-    assert graph.get_hyperedge("Q1").r != 1
-
-
-def test_vis_subgraph_execution():
-    """Generuje obrazki, gdy element jest częścią większego grafu."""
-    graph = create_base_graph()
-
-    graph.add_vertex(Vertex(99, 20, 20))  # Daleko
-    graph.add_hyperedge(Hyperedge("E_extra", "E", 0, 1))
-    graph.connect("E_extra", 99)
-
-    visualize_graph(
-        graph, "P12: LHS (Podgraf)", f"{VIS_DIR}/scenariusz3_podgraf_przed.png"
-    )
-
-    p12 = ProductionP12()
-    p12.apply(graph)
-
-    visualize_graph(
-        graph, "P12: RHS (Podgraf)", f"{VIS_DIR}/scenariusz3_podgraf_po.png"
-    )
+    assert graph.get_hyperedge("T1").r != 1
 
 
 def test_vis_error_missing_vertex():
@@ -110,7 +90,7 @@ def test_vis_error_missing_vertex():
     visualize_graph(
         graph,
         "P12 Error: Brak wierzcholka 7",
-        f"{VIS_DIR}/scenariusz4_error_brak_v.png",
+        f"{VIS_DIR}/scenariusz3_error_brak_v.png",
     )
 
     p12 = ProductionP12()
@@ -122,12 +102,12 @@ def test_vis_error_wrong_attribute():
     """Generuje obrazek grafu z błędnym atrybutem (R=0 zamiast R=1)."""
     graph = create_base_graph()
 
-    graph.update_hyperedge("Q1", label="S")
+    graph.update_hyperedge("T1", label="S")
 
     visualize_graph(
         graph,
-        "P11 Error: Q ma etykietę S",
-        f"{VIS_DIR}/scenariusz5_error_zla_etykieta.png",
+        "P11 Error: T ma etykietę S",
+        f"{VIS_DIR}/scenariusz4_error_zla_etykieta.png",
     )
 
     p12 = ProductionP12()
@@ -138,6 +118,7 @@ def test_vis_error_wrong_attribute():
 def test_vis_multiple_matches():
     """
     Tworzy graf z DWOMA niezależnymi elementami gotowymi do podziału.
+    Sprawdza, czy graf produkcja wykona się gdy graf izomorficzny jest podgrafem innego grafu.
     Sprawdza, czy produkcja wykona się dla obu miejsc.
     """
 
@@ -154,10 +135,10 @@ def test_vis_multiple_matches():
     for x in v:
         graph.add_vertex(x)
 
-    q = Hyperedge("Q2", "Q", r=0, b=0)
-    graph.add_hyperedge(q)
+    t = Hyperedge("T2", "T", r=0, b=0)
+    graph.add_hyperedge(t)
     for i in [3, 4, 8, 9, 10, 11, 12]:
-        graph.connect("Q2", i)
+        graph.connect("T2", i)
 
     edges = [
         ("E8", 3, 8),
@@ -173,7 +154,7 @@ def test_vis_multiple_matches():
         graph.connect(e, v)
 
     visualize_graph(
-        graph, "P12: LHS (Dwa siedmiokąty)", f"{VIS_DIR}/scenariusz6_multi_przed.png"
+        graph, "P12: LHS (Dwa siedmiokąty)", f"{VIS_DIR}/scenariusz5_multi_przed.png"
     )
 
     p12 = ProductionP12()
@@ -183,5 +164,5 @@ def test_vis_multiple_matches():
     p12.apply(graph)
 
     visualize_graph(
-        graph, "P12: RHS (Dwa siedmiokąty)", f"{VIS_DIR}/scenariusz6_multi_po.png"
+        graph, "P12: RHS (Dwa siedmiokąty)", f"{VIS_DIR}/scenariusz5_multi_po.png"
     )

@@ -9,7 +9,7 @@ from ..elements import Hyperedge, Vertex
 class ProductionP12(Production):
     """
     P12: Oznaczenie elementu do zmiany.
-    Ustawia R=1 dla węzła o etykiecie Q, jeśli R było 0.
+    Ustawia R=1 dla węzła o etykiecie T, jeśli R było 0.
     """
 
     DEBUG = True
@@ -23,7 +23,7 @@ class ProductionP12(Production):
                 print(f"[P12] Sprawdzam węzeł: {data}")
             hyperedge_obj = data.get("data")
 
-            # 1. Musi to być Hyperedge typu 'Q' z R=0
+            # 1. Musi to być Hyperedge typu 'T' z R=0
             if not isinstance(hyperedge_obj, Hyperedge):
                 if self.DEBUG:
                     print("[P12] - pomijam, nie jest Hyperedge.")
@@ -35,10 +35,10 @@ class ProductionP12(Production):
                     print(f"[P12] - pomijam, nie jest celem (target_id={target_id}).")
                 continue
 
-            # 3. Musi mieć etykietę `Q`
-            if hyperedge_obj.label != "Q":
+            # 3. Musi mieć etykietę `T`
+            if hyperedge_obj.label != "T":
                 if self.DEBUG:
-                    print("[P12] - pomijam, nie jest Q.")
+                    print("[P12] - pomijam, nie jest T.")
                 continue
 
             # 4. Musi mieć R=`0`

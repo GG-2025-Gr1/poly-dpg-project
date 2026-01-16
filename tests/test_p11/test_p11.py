@@ -78,26 +78,6 @@ def test_vis_standard_execution():
     visualize_graph(graph, "P11: RHS (Standard)", f"{VIS_DIR}/scenariusz1_po.png")
 
 
-def test_vis_subgraph_execution():
-    """Generuje obrazki, gdy element jest częścią większego grafu."""
-    graph = create_base_graph()
-
-    graph.add_vertex(Vertex(99, 20, 20))  # Daleko
-    graph.add_hyperedge(Hyperedge("E_extra", "E", 0, 1))
-    graph.connect("E_extra", 99)
-
-    visualize_graph(
-        graph, "P11: LHS (Podgraf)", f"{VIS_DIR}/scenariusz2_podgraf_przed.png"
-    )
-
-    p11 = ProductionP11()
-    p11.apply(graph)
-
-    visualize_graph(
-        graph, "P11: RHS (Podgraf)", f"{VIS_DIR}/scenariusz2_podgraf_po.png"
-    )
-
-
 def test_vis_error_missing_vertex():
     """Generuje obrazek niepoprawnego grafu (brak jednego wierzchołka)."""
     graph = create_base_graph()
@@ -107,7 +87,7 @@ def test_vis_error_missing_vertex():
     visualize_graph(
         graph,
         "P11 Error: Brak wierzcholka 10",
-        f"{VIS_DIR}/scenariusz3_error_brak_v.png",
+        f"{VIS_DIR}/scenariusz2_error_brak_v.png",
     )
 
     p11 = ProductionP11()
@@ -130,7 +110,7 @@ def test_vis_error_missing_edge():
     visualize_graph(
         graph,
         "P11 Error: Bok niepodzielony",
-        f"{VIS_DIR}/scenariusz4_error_caly_bok.png",
+        f"{VIS_DIR}/scenariusz3_error_caly_bok.png",
     )
 
     p11 = ProductionP11()
@@ -147,7 +127,7 @@ def test_vis_error_wrong_label():
     visualize_graph(
         graph,
         "P11 Error: Q ma etykietę S",
-        f"{VIS_DIR}/scenariusz5_error_zla_etykieta.png",
+        f"{VIS_DIR}/scenariusz4_error_zla_etykieta.png",
     )
 
     p11 = ProductionP11()
@@ -155,9 +135,11 @@ def test_vis_error_wrong_label():
     assert len(matches) == 0
 
 
-def test_vis_multiple_matches():
+def test_vis_subgraph_multiple_matches():
+    # TODO: krawędzie pomiędzy grafami nie powinny być brzegiem
     """
     Tworzy graf z DWOMA niezależnymi elementami gotowymi do podziału.
+    Sprawdza, czy graf produkcja wykona się gdy graf izomorficzny jest podgrafem innego grafu.
     Sprawdza, czy produkcja wykona się dla obu miejsc.
     """
 
@@ -207,7 +189,7 @@ def test_vis_multiple_matches():
         graph.connect(e, v)
 
     visualize_graph(
-        graph, "P11: LHS (Dwa sześciokąty)", f"{VIS_DIR}/scenariusz6_multi_przed.png"
+        graph, "P11: LHS (Dwa sześciokąty)", f"{VIS_DIR}/scenariusz5_multi_przed.png"
     )
 
     p11 = ProductionP11()
@@ -217,5 +199,5 @@ def test_vis_multiple_matches():
     p11.apply(graph)
 
     visualize_graph(
-        graph, "P11: RHS (Dwa sześciokąty)", f"{VIS_DIR}/scenariusz6_multi_po.png"
+        graph, "P11: RHS (Dwa sześciokąty)", f"{VIS_DIR}/scenariusz5_multi_po.png"
     )
