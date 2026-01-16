@@ -22,27 +22,26 @@ class ProductionP12(Production):
             if self.DEBUG:
                 print(f"[P12] Sprawdzam węzeł: {data}")
             hyperedge_obj = data.get("data")
-            # 1. For starters we only consider Hyperedge nodes as candidates
-            #    as those constraints are the easiest to check
-            #    and we need to change R 0 -> 1 in the P12's RHS
+
+            # 1. Musi to być Hyperedge typu 'Q' z R=0
             if not isinstance(hyperedge_obj, Hyperedge):
                 if self.DEBUG:
                     print("[P12] - pomijam, nie jest Hyperedge.")
                 continue
 
-            # 2. If target_id is given, only consider that specific node
+            # 2. Opcjonalne filtrowanie po ID
             if target_id is not None and hyperedge_obj.uid != target_id:
                 if self.DEBUG:
                     print(f"[P12] - pomijam, nie jest celem (target_id={target_id}).")
                 continue
 
-            # 3. It must have label Q
+            # 3. Musi mieć etykietę `Q`
             if hyperedge_obj.label != "Q":
                 if self.DEBUG:
                     print("[P12] - pomijam, nie jest Q.")
                 continue
 
-            # 4. It must have R=0
+            # 4. Musi mieć R=`0`
             if hyperedge_obj.r != 0:
                 if self.DEBUG:
                     print("[P12] - pomijam, R != 0.")
@@ -54,12 +53,14 @@ class ProductionP12(Production):
                     f"[P12] - znalezione wierzchołki hiperkrawędzi: {hyperedge_vertices}"
                 )
 
-            # 5. It must be connected to exactly 7 vertices
+            # 5. Musi mieć dokładnie 7 wierzchołków
             if len(hyperedge_vertices) != 7:
                 if self.DEBUG:
                     print("[P12] - pomijam, nie ma 6 wierzchołków.")
                 continue
 
+            # 4. Sortujemy narożniki geometrycznie (przeciwnie do wskazówek zegara),
+            # Jest to niezbędne, aby sprawdzić sąsiedztwo na bokach
             sorted_vertices = self._sort_vertices_counter_clockwise(hyperedge_vertices)
 
             should_continue = False

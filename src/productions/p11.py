@@ -26,7 +26,7 @@ class ProductionP11(Production):
             if target_id is not None and he.uid != target_id:
                 continue
 
-            # 3. Musi mieć dokładnie 6 narożników (wierzchołków)
+            # 3. Musi mieć dokładnie 6 wierzchołków
             corners = graph.get_hyperedge_vertices(he.uid)
             if len(corners) != 6:
                 continue
