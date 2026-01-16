@@ -17,24 +17,16 @@ def create_base_graph():
 
     # Narożniki
     v = [
-        Vertex(1, 4, 0),
-        Vertex(2, 10, 0),
-        Vertex(3, 10, 8),
-        Vertex(4, 4, 8),
-        Vertex(5, 14, 4),
-        Vertex(6, 0, 4),
-        Vertex(7, 7, 0),
-    ]
-
-    # Midpoints (wiszące)
-    m = [
-        # Vertex(7, 7, 0, hanging=True),
+        Vertex(1, 2, 0),
+        Vertex(2, 0, 3),
+        Vertex(3, 3, 6),
+        Vertex(4, 9, 6),
+        Vertex(5, 12, 3),
+        Vertex(6, 10, 0),
+        Vertex(7, 6, 0),
     ]
 
     for x in v:
-        graph.add_vertex(x)
-
-    for x in m:
         graph.add_vertex(x)
 
     # Element Q (R=1)
@@ -45,13 +37,13 @@ def create_base_graph():
 
     # Krawędzie obwodu (niezbędne dla P11)
     edges = [
-        ("E1", 1, 7),
-        ("E2", 7, 2),
-        ("E3", 2, 5),
-        ("E4", 5, 3),
-        ("E5", 3, 4),
-        ("E6", 4, 6),
-        ("E7", 6, 1),
+        ("E1", 1, 2),
+        ("E2", 2, 3),
+        ("E3", 3, 4),
+        ("E4", 4, 5),
+        ("E5", 5, 6),
+        ("E6", 6, 7),
+        ("E7", 7, 1),
     ]
     for e, u, v in edges:
         graph.add_hyperedge(Hyperedge(e, "E", 0, 1))
@@ -99,19 +91,44 @@ def test_vis_bad_r_value():
     assert graph.get_hyperedge("Q1").r != 1
 
 
-# === SCENARIUSZ 3: BŁĄD - BRAK WIERZCHOŁKA ===
+# === SCENARIUSZ 3: GRAF JAKO PODGRAF (Izomorfizm) ===
+def test_vis_subgraph_execution():
+    """Generuje obrazki, gdy element jest częścią większego grafu."""
+    graph = create_base_graph()
+
+    # Dodajemy "niezwiązane" elementy (sztuczny tłum)
+    graph.add_vertex(Vertex(99, 20, 20))  # Daleko
+    graph.add_hyperedge(Hyperedge("E_extra", "E", 0, 1))
+    graph.connect("E_extra", 99)
+
+    # 1. Przed
+    visualize_graph(
+        graph, "P12: LHS (Podgraf)", f"{VIS_DIR}/scenariusz3_podgraf_przed.png"
+    )
+
+    p12 = ProductionP12()
+    p12.apply(graph)
+
+    # 2. Po (Sprawdzamy czy węzeł 99 nadal tam jest)
+    visualize_graph(
+        graph, "P12: RHS (Podgraf)", f"{VIS_DIR}/scenariusz3_podgraf_po.png"
+    )
+
+
+# === SCENARIUSZ 4: BŁĄD - BRAK WIERZCHOŁKA ===
 def test_vis_error_missing_vertex():
-    """Generuje obrazek niepoprawnego grafu (brak jednego mid-pointa)."""
+    """Generuje obrazek niepoprawnego grafu (brak jednego wierzchołka)."""
     graph = create_base_graph()
 
     # Usuwamy wierzchołek nr 7 (na dole po środku)
     # Uwaga: remove_node w NetworkX usuwa też przyległe krawędzie
     graph.remove_node(7)
+    graph.connect(1, 6)
 
     visualize_graph(
         graph,
-        "P12 Error: Brak wierzcholka 10",
-        f"{VIS_DIR}/scenariusz3_error_brak_v.png",
+        "P12 Error: Brak wierzcholka 7",
+        f"{VIS_DIR}/scenariusz4_error_brak_v.png",
     )
 
     # Próba wykonania (nie powinna nic zmienić)
@@ -120,177 +137,75 @@ def test_vis_error_missing_vertex():
     assert len(matches) == 0  # Upewniamy się w teście, że nie działa
 
 
-#
-# === SCENARIUSZ 4: BŁĄD - BRAK KRAWEDZI ===
-def test_vis_error_missing_edge():
-    """Generuje obrazek niepoprawnego grafu (brak jednego mid-pointa)."""
+# === SCENARIUSZ 5: BŁĄD - ZŁA ETYKIETA ===
+def test_vis_error_wrong_attribute():
+    """Generuje obrazek grafu z błędnym atrybutem (R=0 zamiast R=1)."""
     graph = create_base_graph()
 
-    # Usuwamy krawędź między wierzchołkami 1 a 7
-    graph.remove_node("E1")
+    # Psujemy atrybut R
+    graph.update_hyperedge("Q1", label="S")
 
     visualize_graph(
         graph,
-        "P12 Error: Brak krawedzi miedzy 1 a 7",
-        f"{VIS_DIR}/scenariusz3_error_brak_e.png",
+        "P11 Error: Q ma etykietę S",
+        f"{VIS_DIR}/scenariusz5_error_zla_etykieta.png",
     )
 
-    # Próba wykonania (nie powinna nic zmienić)
     p12 = ProductionP12()
     matches = p12.find_lhs(graph)
-    assert len(matches) == 0  # Upewniamy się w teście, że nie działa
+    assert len(matches) == 0
 
 
-# def get_graph_with_unmarked_element() -> Graph:
-#     """
-#     Tworzy graf z elementem S (P1) z R=0 (nieoznaczony).
-#     """
-#     graph = create_base_graph()
-#     # Zmieniamy domyślne R=1 na R=0 dla elementu P1 (Label='S')
-#     graph.update_hyperedge("P1", r=0)
-#     return graph
-#
-#
-# def get_graph_with_marked_element() -> Graph:
-#     """
-#     Tworzy graf z elementem S (P1) z R=1 (oznaczony).
-#     """
-#     # get_hexagonal_graph_marked domyślnie tworzy P1 z R=1
-#     return get_hexagonal_graph_marked()
-#
-#
-# def test_p12_isomorphism_and_application():
-#     """
-#     Sprawdza, czy P12 poprawnie znajduje element S z R=0 i ustawia mu R=1.
-#     """
-#     graph = get_graph_with_unmarked_element()
-#
-#     visualize_graph(graph, "P12: Przed", filepath="tests/test_p12/before_p12.png")
-#
-#     p12 = ProductionP12()
-#     matches = p12.find_lhs(graph)
-#
-#     assert len(matches) == 1
-#     assert matches[0].uid == "P1"
-#
-#     graph = p12.apply(graph)
-#     visualize_graph(graph, "P12: Po", filepath="tests/test_p12/after_p12.png")
-#
-#     element_p1 = graph.get_hyperedge("P1")
-#     assert element_p1.r == 1, "Element P1 (S) powinien mieć R=1 po zastosowaniu P12"
-#
-#
-# def test_p12_ignored_if_element_is_already_marked_r1():
-#     """
-#     P12 nie powinna działać na elemencie S (P1), który ma już R=1.
-#     """
-#     graph = get_graph_with_marked_element()
-#
-#     p12 = ProductionP12()
-#     matches = p12.find_lhs(graph)
-#
-#     assert len(matches) == 0, "P12 nie powinna znaleźć dopasowania dla elementu z R=1"
-#
-#
-# def test_p12_selects_unmarked_among_many():
-#     """
-#     Sprawdza, czy P12 wybiera tylko element S z R=0, ignorując elementy S z R=1.
-#     """
-#     graph = get_graph_with_unmarked_element()
-#
-#     # Dodajemy S2 (oznaczony R=1)
-#     s2 = Hyperedge(uid="S2", label="S", r=1, b=0)
-#     graph.add_hyperedge(s2)
-#     graph.connect("S2", 1)
-#     graph.connect("S2", 2)
-#     graph.connect("S2", 3)
-#
-#     p12 = ProductionP12()
-#     matches = p12.find_lhs(graph)
-#
-#     # Powinno znaleźć tylko P1 (R=0)
-#     assert len(matches) == 1
-#     assert matches[0].uid == "P1"
-#
-#     graph = p12.apply(graph)
-#     assert graph.get_hyperedge("P1").r == 1
-#     assert graph.get_hyperedge("S2").r == 1
-#
-#
-# def test_p12_only_targets_label_s():
-#     """
-#     P12 powinna dopasowywać tylko element 'S', ignorując inne elementy (np. 'E') z R=0.
-#     """
-#     graph = get_graph_with_unmarked_element()
-#
-#     # E1 jest krawędzią (label='E', R=0) w hexagonal_graph_marked
-#     edge_e = graph.get_hyperedge("E1")
-#     assert edge_e.r == 0
-#     assert edge_e.label == "E"
-#
-#     p12 = ProductionP12()
-#     matches = p12.find_lhs(graph)
-#
-#     # Powinno znaleźć tylko P1 (label='S', R=0)
-#     assert len(matches) == 1
-#     assert matches[0].uid == "P1"
-#     assert matches[0].label == "S"
-#
-#
-# def test_p12_broken_topology_missing_vertex():
-#     """
-#     P12 nie powinna działać, jeśli element S (P1) nie ma 6 wierzchołków.
-#     """
-#     graph = get_graph_with_unmarked_element()
-#
-#     # Odłączamy wierzchołek 6 od P1
-#     graph.remove_edge("P1", 6)
-#
-#     p12 = ProductionP12()
-#     matches = p12.find_lhs(graph)
-#
-#     assert len(matches) == 0, (
-#         "P12 powinna zignorować S, który nie jest połączony z 6 wierzchołkami"
-#     )
-#
-#
-# def test_p12_broken_topology_wrong_label_r0():
-#     """
-#     P12 ignoruje element z R=0, który ma poprawną topologię (6 wierzchołków), ale niepoprawną etykietę ('Q').
-#     """
-#     graph = get_graph_with_unmarked_element()
-#
-#     # Ustawiamy P1 (S) na R=1, żeby wykluczyć go z dopasowania
-#     graph.update_hyperedge("P1", r=1)
-#
-#     # Tworzymy nowy element Q1 (R=0, 6 wierzchołków)
-#     q1 = Hyperedge(uid="Q1", label="Q", r=0, b=0)
-#     graph.add_hyperedge(q1)
-#
-#     # Podłączamy Q1 do 6 wierzchołków (1..6)
-#     for vid in range(1, 7):
-#         graph.connect("Q1", vid)
-#
-#     p12 = ProductionP12()
-#     matches = p12.find_lhs(graph)
-#
-#     assert len(matches) == 0, (
-#         "P12 powinna zignorować Q1, ponieważ jego label to nie 'S'"
-#     )
-#
-#
-# def test_p12_missing_boundary_edge():
-#     """
-#     P12 nie powinna działać, jeśli brakuje choć jednej krawędzi 'E' na obwodzie.
-#     """
-#     graph = get_graph_with_unmarked_element()
-#
-#     # Usuwamy jedną krawędź brzegową (np. E1)
-#     graph.remove_node("E1")
-#
-#     p12 = ProductionP12()
-#     matches = p12.find_lhs(graph)
-#
-#     assert len(matches) == 0, (
-#         "P12 nie powinna znaleźć dopasowania, gdy brakuje krawędzi E"
-#     )
+# === SCENARIUSZ 6: WIELE DOPASOWAŃ (Double Match) ===
+def test_vis_multiple_matches():
+    """
+    Tworzy graf z DWOMA niezależnymi elementami gotowymi do podziału.
+    Sprawdza, czy produkcja wykona się dla obu miejsc.
+    """
+
+    # --- Pierwszy siedmiokąt (dolny) ---
+    graph = create_base_graph()
+
+    # --- Drugi siedmiokąt (górny) ---
+    v = [
+        Vertex(8, 0, 9),
+        Vertex(9, 2, 12),
+        Vertex(10, 6, 12),
+        Vertex(11, 10, 12),
+        Vertex(12, 12, 9),
+    ]
+
+    for x in v:
+        graph.add_vertex(x)
+
+    q = Hyperedge("Q2", "Q", r=0, b=0)
+    graph.add_hyperedge(q)
+    for i in [3, 4, 8, 9, 10, 11, 12]:
+        graph.connect("Q2", i)
+
+    edges = [
+        ("E8", 3, 8),
+        ("E9", 8, 9),
+        ("E10", 9, 10),
+        ("E11", 10, 11),
+        ("E12", 11, 12),
+        ("E13", 12, 4),
+    ]
+    for e, u, v in edges:
+        graph.add_hyperedge(Hyperedge(e, "E", 0, 1))
+        graph.connect(e, u)
+        graph.connect(e, v)
+
+    visualize_graph(
+        graph, "P12: LHS (Dwa siedmiokąty)", f"{VIS_DIR}/scenariusz6_multi_przed.png"
+    )
+
+    p12 = ProductionP12()
+    matches = p12.find_lhs(graph)
+    assert len(matches) == 2, f"Powinien znaleźć 2 dopasowania, znalazł {len(matches)}"
+
+    p12.apply(graph)
+
+    visualize_graph(
+        graph, "P12: RHS (Dwa siedmiokąty)", f"{VIS_DIR}/scenariusz6_multi_po.png"
+    )
