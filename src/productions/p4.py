@@ -87,7 +87,7 @@ class ProductionP4(Production):
         # Simple approach: use max existing vertex ID + 1
         max_vertex_id = max(
             [node_id for node_id, data in graph._nx_graph.nodes(data=True) 
-             if isinstance(data.get("data"), Vertex)],
+             if isinstance(data.get("data"), Vertex) and isinstance(node_id, int)],
             default=0
         )
         new_vertex_id = max_vertex_id + 1

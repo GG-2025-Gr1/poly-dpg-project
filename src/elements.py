@@ -8,7 +8,7 @@ class Vertex:
     Reprezentuje geometryczny wierzchołek 2D (x, y).
     """
 
-    uid: Union[int, str]
+    uid: int
     x: float
     y: float
     hanging: bool = False  # Czy węzeł jest wiszący (hanging node)
@@ -35,10 +35,11 @@ class Hyperedge:
     Reprezentuje hiperkrawędź: Wnętrze (Q, P, S) lub Krawędź (E).
     """
 
-    uid: Union[int, str]
+    uid: int
     label: str  # 'Q', 'E', 'P', 'S'
     r: int = 0  # Refinement flag (0 lub 1)
     b: int = 0  # Boundary flag (0 lub 1)
+    
 
     def __repr__(self):
         return f"{self.label}(id={self.uid}, R={self.r}, B={self.b})"

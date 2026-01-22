@@ -150,9 +150,16 @@ class ProductionP2(Production):
         # 2. Create two new E hyperedges
         # Properties: label='E', r=0, b=0 (since matched edge was b=0)
         # We assume b=0 for the new edges because they are internal parts of the split.
-        
-        new_h1 = Hyperedge(uid=str(uuid.uuid4()), label="E", r=0, b=0)
-        new_h2 = Hyperedge(uid=str(uuid.uuid4()), label="E", r=0, b=0)
+        max_edge_id = max(
+            [int(str(node_id).replace("E", "")) 
+             for node_id, data in graph._nx_graph.nodes(data=True) 
+             if isinstance(data.get("data"), Hyperedge) and str(node_id).startswith("E")],
+            default=0
+        )
+        new_e1_uid = f"E{max_edge_id + 1}"
+        new_e2_uid = f"E{max_edge_id + 2}"
+        new_h1 = Hyperedge(uid=new_e1_uid, label="E", r=0, b=0)
+        new_h2 = Hyperedge(uid=new_e2_uid, label="E", r=0, b=0)
         
         graph.add_hyperedge(new_h1)
         graph.add_hyperedge(new_h2)

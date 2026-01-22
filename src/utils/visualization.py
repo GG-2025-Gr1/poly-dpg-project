@@ -34,6 +34,7 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
     # 1a. Vertex positions (fixed)
     for node_id, data in nx_graph.nodes(data=True):
         obj = data.get("data")
+        vertex_nodes.append(node_id)
         if isinstance(obj, Vertex):
             x, y = obj.x, obj.y
             # Offset dla hanging nodes - aby nie nakładały się z krawędziami
@@ -90,7 +91,7 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
             labels_h[node_id] = f"{obj.label}\nR={obj.r}"
 
     # 3. Drawing - Layered Approach
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(32, 32))
     
     # Layer 1: Hyperedges (Background)
     if hyperedge_nodes:
@@ -129,22 +130,13 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
             label="Vertices"
         )
         # Layer 3b: Vertex Labels (Topmost)
-        # Offset labels slightly above the node
-        pos_labels = {k: (v[0], v[1] + 0.1) for k, v in pos.items() if k in vertex_nodes}
-        
-        # Add coordinates to vertex labels for clarity
-        enhanced_labels_v = {}
-        for node_id in vertex_nodes:
-            obj = nx_graph.nodes[node_id]["data"]
-            enhanced_labels_v[node_id] = f"{node_id}\n({obj.x},{obj.y})"
-
         nx.draw_networkx_labels(
             nx_graph,
-            pos_labels,
-            enhanced_labels_v,
-            font_size=8,
+            pos,
+            labels_v,
+            font_size=10,
             font_weight="bold",
-            bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=1) # Add background to labels
+            bbox=dict(facecolor='white', alpha=0.8, edgecolor='black', linewidth=0.5, pad=2)
         )
 
     plt.title(title)

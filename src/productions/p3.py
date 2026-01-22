@@ -54,11 +54,21 @@ class ProductionP3(Production):
         # 1. Obliczamy współrzędne nowego wierzchołka (środek)
         new_x = (v1.x + v2.x) / 2.0
         new_y = (v1.y + v2.y) / 2.0
-
+        max_vertex_id = max(
+            [node_id for node_id, data in graph._nx_graph.nodes(data=True) 
+             if isinstance(data.get("data"), Vertex)],
+            default=0
+        )
         # Tworzymy unikalne ID dla nowych elementów
-        new_v_uid = f"{match_node.uid}_v"
-        new_e1_uid = f"{match_node.uid}_e1"
-        new_e2_uid = f"{match_node.uid}_e2"
+        new_v_uid = max_vertex_id + 1
+        max_edge_id = max(
+            [int(str(node_id).replace("E", "")) 
+             for node_id, data in graph._nx_graph.nodes(data=True) 
+             if isinstance(data.get("data"), Hyperedge) and str(node_id).startswith("E")],
+            default=0
+        )
+        new_e1_uid = f"E{max_edge_id + 1}"
+        new_e2_uid = f"E{max_edge_id + 2}"
 
         # 2. Dodajemy nowy wierzchołek (wiszący)
         # Zgodnie z P3, ten wierzchołek powstaje na krawędzi.
