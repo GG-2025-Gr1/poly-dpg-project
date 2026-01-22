@@ -34,8 +34,8 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
     # 1a. Vertex positions (fixed)
     for node_id, data in nx_graph.nodes(data=True):
         obj = data.get("data")
-        vertex_nodes.append(node_id)
         if isinstance(obj, Vertex):
+            vertex_nodes.append(node_id)
             x, y = obj.x, obj.y
             # Offset dla hanging nodes - aby nie nakładały się z krawędziami
             if obj.hanging:
@@ -73,32 +73,26 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
         sizes_v.append(200)
         labels_v[node_id] = f"{node_id}"
         
-    # Hyperedges
+    # Hyperedges (draw only E-type, hide Q/S nodes and labels)
+    hyperedge_nodes_e = []
     for node_id in hyperedge_nodes:
         obj = nx_graph.nodes[node_id]["data"]
-        
-        if obj.label == "Q":
-            colors_h.append("#ff9999") # Red
-            sizes_h.append(600)
-            labels_h[node_id] = f"Q\nR={obj.r}"
-        elif obj.label == "E":
-            colors_h.append("#99ff99") # Green
-            sizes_h.append(300)
-            labels_h[node_id] = f"E\nB={obj.b}\nR={obj.r}"
-        else:
-            colors_h.append("#cccccc") # Grey
-            sizes_h.append(300)
-            labels_h[node_id] = f"{obj.label}\nR={obj.r}"
+        if obj.label != "E":
+            continue
+        hyperedge_nodes_e.append(node_id)
+        colors_h.append("#99ff99") # Green
+        sizes_h.append(300)
+        labels_h[node_id] = f"E\nB={obj.b}\nR={obj.r}"
 
     # 3. Drawing - Layered Approach
     plt.figure(figsize=(32, 32))
     
-    # Layer 1: Hyperedges (Background)
-    if hyperedge_nodes:
+    # Layer 1: Hyperedges (Background) - only E-type
+    if hyperedge_nodes_e:
         nx.draw_networkx_nodes(
             nx_graph,
             pos,
-            nodelist=hyperedge_nodes,
+            nodelist=hyperedge_nodes_e,
             node_color=colors_h,
             node_size=sizes_h,
             label="Hyperedges"
@@ -111,13 +105,24 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
             font_size=9,
             font_weight="bold"
         )
-    
-    # Layer 2: Edges (Middle)
-    nx.draw_networkx_edges(
-        nx_graph,
-        pos,
-        edge_color="gray"
-    )
+
+    # Layer 2: Edges (Middle) - only edges incident to E-type hyperedges
+    edges_to_draw = []
+    for u, v in nx_graph.edges():
+        obj_u = nx_graph.nodes[u].get("data")
+        obj_v = nx_graph.nodes[v].get("data")
+        if isinstance(obj_u, Hyperedge) and getattr(obj_u, "label", None) == "E" and isinstance(obj_v, Vertex):
+            edges_to_draw.append((u, v))
+        elif isinstance(obj_v, Hyperedge) and getattr(obj_v, "label", None) == "E" and isinstance(obj_u, Vertex):
+            edges_to_draw.append((u, v))
+
+    if edges_to_draw:
+        nx.draw_networkx_edges(
+            nx_graph,
+            pos,
+            edgelist=edges_to_draw,
+            edge_color="gray"
+        )
         
     # Layer 3: Vertices (Foreground)
     if vertex_nodes:

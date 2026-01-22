@@ -149,6 +149,34 @@ if __name__ == "__main__":
     visualize_graph(graph, "Po zastosowaniu P3 ponownie", filepath="visualizations/step10.png")
     p5.apply(graph)
     visualize_graph(graph, "Po zastosowaniu P5", filepath="visualizations/step11.png")
+    p2.apply(graph)
+    visualize_graph(graph, "Po zastosowaniu P2 ponownie", filepath="visualizations/step12.png")
+
+    # Druga iteracja
+    p0.apply(graph, target_id="Q8")
+    visualize_graph(graph, "Po drugiej iteracji P0", filepath="visualizations/step13.png")
+    p1.apply(graph)
+    visualize_graph(graph, "Po drugiej iteracji P1", filepath="visualizations/step14.png")
+    p4.apply(graph)
+    visualize_graph(graph, "Po drugiej iteracji P4", filepath="visualizations/step15.png")
+    p3.apply(graph)
+    visualize_graph(graph, "Po drugiej iteracji P3", filepath="visualizations/step16.png")
+    p5.apply(graph)
+    visualize_graph(graph, "Po drugiej iteracji P5", filepath="visualizations/step17.png")
+    
+    p0.apply(graph, target_id="Q12")
+    visualize_graph(graph, "Po trzeciej iteracji P0", filepath="visualizations/step18.png")
+    p1.apply(graph)
+    visualize_graph(graph, "Po trzeciej iteracji P1", filepath="visualizations/step19.png")
+    p4.apply(graph)
+    visualize_graph(graph, "Po trzeciej iteracji P4", filepath="visualizations/step20.png")
+    p2.apply(graph)
+    visualize_graph(graph, "Po trzeciej iteracji P2", filepath="visualizations/step21.png")
+    p3.apply(graph)
+    visualize_graph(graph, "Po trzeciej iteracji P3", filepath="visualizations/step22.png")
+    p5.apply(graph)
+    visualize_graph(graph, "Po trzeciej iteracji P5", filepath="visualizations/step23.png")
+
 
     
 
