@@ -111,7 +111,6 @@ class ProductionP8(Production):
         # corners[i] --- midpoints[i] --- corners[i+1]
         # Dla każdego i tworzymy Quad z wierzchołków:
         # corners[i+1], midpoints[i], center, midpoints[i+1]
-        # (indeksowanie modulo 5)
         
         for i in range(5):
             idx_curr = i
@@ -136,8 +135,7 @@ class ProductionP8(Production):
                 graph.connect(q_uid, v.uid)
                 
             # Tworzymy wewnętrzną krawędź E (Center - Midpoint)
-            # Uwaga: Każdy midpoint łączy się z centrum. Robimy to raz dla każdego midpointa.
-            # W pętli po i, midpoint[i] łączy się z centrum w ramach Q (ale E jest osobne)
+            # W pętli po i, midpoint[i] łączy się z centrum w ramach Q
             # Żeby nie dublować E, stwórzmy E łączące v_center z v_mid_next
             
             e_uid = f"E_inner_{p_edge.uid}_{i}"
