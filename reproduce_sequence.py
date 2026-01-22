@@ -216,19 +216,17 @@ def run_sequence():
     # 1. Break Bottom Rectangle (Q3)
     # P0: Mark Quad, P1: Mark Edges, P5: Split
     mark_sequence(g, "Q3", "iter_1", "Iteracja 1", "Produkcja P0", "Produkcja P1")
-    new_ids = break_element(g, "Q3", "iter_1", "Iteracja 1: Produkcja P5")
-    # Final result snapshot (optional for report but good for debug)
-    # save_snapshots(g, "iter_1_final", "Iteracja 1: Wynik P5", highlight_ids=new_ids)
+    new_ids = break_element(g, "Q3", "iter_1", "Iteracja 1: Produkcje P2-P4 + P5")
 
     # 2. Break Right Hexagon (S2)
     # P9: Mark Hex, P10: Mark Edges, P11: Split
     mark_sequence(g, "S2", "iter_2", "Iteracja 2", "Produkcja P9", "Produkcja P10")
-    new_ids = break_element(g, "S2", "iter_2", "Iteracja 2: Produkcja P11")
+    new_ids = break_element(g, "S2", "iter_2", "Iteracja 2: Produkcje P2-P4 + P11")
 
     # 3. Break Center Square (Q1)
     # P0, P1, P5
     mark_sequence(g, "Q1", "iter_3", "Iteracja 3", "Produkcja P0", "Produkcja P1")
-    sub_q1_ids = break_element(g, "Q1", "iter_3", "Iteracja 3: Produkcja P5")
+    sub_q1_ids = break_element(g, "Q1", "iter_3", "Iteracja 3: Produkcje P2-P4 + P5")
 
     # 4. Break Bottom-Right Square FROM the Center break (Q1 children)
     target_uid = None
@@ -249,7 +247,7 @@ def run_sequence():
         print(f"Identified BR sub-quad: {target_uid}")
         # P0, P1, P5
         mark_sequence(g, target_uid, "iter_4", "Iteracja 4", "Produkcja P0", "Produkcja P1")
-        new_ids = break_element(g, target_uid, "iter_4", "Iteracja 4: Produkcja P5")
+        new_ids = break_element(g, target_uid, "iter_4", "Iteracja 4: Produkcje P2-P4 + P5")
     else:
         print("Could not find BR sub-quad!")
         save_snapshots(g, "iter_4_error", "Iteracja 4: Error")
