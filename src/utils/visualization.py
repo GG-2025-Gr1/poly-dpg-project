@@ -7,11 +7,11 @@ from ..graph import Graph
 from ..elements import Vertex, Hyperedge
 
 
-def visualize_graph(graph: Graph, title: str, filepath: str = None):
+def visualize_graph(graph: Graph, title: str, filepath: str = None, show_attributes: bool = False, highlight_nodes: list = None):
     """
     Visualizes an object of the model.graph.Graph class.
-    Calculates the positions of logical nodes (Q, E) based on their neighboring vertices.
-    Ensures vertices are drawn ON TOP of hyperedges and their labels for visibility.
+    Args:
+        highlight_nodes: List of uids (str/int) to highlight. If provided, other hyperedges are grayed out/unlabeled.
     """
     nx_graph = graph.nx_graph
     pos = {}
@@ -36,10 +36,10 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
         obj = data.get("data")
         if isinstance(obj, Vertex):
             x, y = obj.x, obj.y
-            # Offset dla hanging nodes - aby nie nakładały się z krawędziami
             if obj.hanging:
                 y += 0.2
             pos[node_id] = (x, y)
+            vertex_nodes.append(node_id)
 
     # 1b. Hyperedge positions (centroids of neighbors)
     for node_id, data in nx_graph.nodes(data=True):
@@ -69,32 +69,53 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
     # Vertices
     for node_id in vertex_nodes:
         colors_v.append("#66b2ff") # Blue
-        sizes_v.append(120)        # Reduced from 200
+        sizes_v.append(120)       
         labels_v[node_id] = str(node_id) # Just ID
         
     # Hyperedges
     for node_id in hyperedge_nodes:
         obj = nx_graph.nodes[node_id]["data"]
         
+        # Logic: Is this node highlighted?
+        # If highlight_nodes is None, everything is "highlighted" (normal behavior)
+        # If highlight_nodes is Set, only those are.
+        is_highlighted = (highlight_nodes is None) or (node_id in highlight_nodes)
+        
         if obj.label in ["Q", "S", "P"]:
-            colors_h.append("#ff9999") # Red
-            sizes_h.append(400)        # Reduced from 600
-            # Simplify label: Just Type, add '!' if R=1
-            lbl = obj.label
-            if obj.r == 1:
-                lbl += "!"
-            labels_h[node_id] = lbl
+            if is_highlighted:
+                colors_h.append("#ff9999") # Red (Active)
+                sizes_h.append(400)
+                
+                if show_attributes:
+                    labels_h[node_id] = f"{obj.label}\nR={obj.r}"
+                else:
+                    # Minimal label for highlighted ones (just Type)
+                    # User asked to remove unnecessary text. 
+                    # Maybe just "Q"?
+                    labels_h[node_id] = obj.label
+            else:
+                colors_h.append("#eeeeee") # Very light grey (Inactive)
+                sizes_h.append(400)
+                labels_h[node_id] = ""     # No label for inactive
+                
         elif obj.label == "E":
-            colors_h.append("#99ff99") # Green
-            sizes_h.append(80)         # Much smaller (was 300)
-            labels_h[node_id] = ""     # Hide E labels entirely
+            colors_h.append("#99ff99") 
+            sizes_h.append(80)         
+            
+            if show_attributes and is_highlighted:
+                parts = []
+                if obj.b == 1: parts.append("B=1")
+                if obj.r == 1: parts.append("R=1")
+                labels_h[node_id] = "\n".join(parts) if parts else ""
+            else:
+                labels_h[node_id] = ""
         else:
-            colors_h.append("#cccccc") # Grey
+            colors_h.append("#cccccc")
             sizes_h.append(100)
-            labels_h[node_id] = obj.label
+            labels_h[node_id] = obj.label if is_highlighted else ""
 
     # 3. Drawing - Layered Approach
-    plt.figure(figsize=(10, 10)) # Slightly larger canvas
+    plt.figure(figsize=(12, 12)) if show_attributes else plt.figure(figsize=(10, 10))
     
     # Layer 1: Hyperedges (Background)
     if hyperedge_nodes:
@@ -106,15 +127,17 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
             node_size=sizes_h,
             label="Hyperedges"
         )
-        # Layer 1b: Hyperedge Labels (Only for Q/S/P)
-        # Filter labels to exclude empty ones
         labels_h_filtered = {k: v for k, v in labels_h.items() if v}
+        
+        bbox_style = dict(facecolor='white', alpha=0.8, edgecolor='#cccccc', boxstyle='round,pad=0.2') if show_attributes else None
+        
         nx.draw_networkx_labels(
             nx_graph,
             pos,
             labels_h_filtered,
-            font_size=10,
-            font_weight="bold"
+            font_size=9 if show_attributes else 10,
+            font_weight="normal" if show_attributes else "bold",
+            bbox=bbox_style
         )
     
     # Layer 2: Edges (Middle)
@@ -125,7 +148,6 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
         node_u = nx_graph.nodes[u].get("data")
         node_v = nx_graph.nodes[v].get("data")
         
-        # Identify if one of them is a Hyperedge and check its label
         h_obj = None
         if isinstance(node_u, Hyperedge):
             h_obj = node_u
@@ -138,7 +160,6 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
             else:
                 dashed_edges.append((u, v))
     
-    # Draw Solid Edges (Structural)
     if solid_edges:
         nx.draw_networkx_edges(
             nx_graph,
@@ -148,7 +169,6 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
             width=2.5
         )
         
-    # Draw Dashed Edges (Logical/Region)
     if dashed_edges:
         nx.draw_networkx_edges(
             nx_graph,
@@ -170,20 +190,18 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
             node_size=sizes_v,
             label="Vertices"
         )
-        # Layer 3b: Vertex Labels
-        # Offset labels slightly above the node
-        pos_labels = {k: (v[0], v[1] + 0.08) for k, v in pos.items() if k in vertex_nodes}
-        
-        nx.draw_networkx_labels(
-            nx_graph,
-            pos_labels,
-            labels_v,
-            font_size=8,
-            font_color="#333333"
-        )
+        # pos_labels = {k: (v[0], v[1] + 0.08) for k, v in pos.items() if k in vertex_nodes}
+        #
+        # nx.draw_networkx_labels(
+        #     nx_graph,
+        #     pos_labels,
+        #     labels_v,
+        #     font_size=8,
+        #     font_color="#333333"
+        # )
 
     plt.title(title)
-    plt.axis('equal') # Keep aspect ratio for geometry
+    plt.axis('equal')
 
     if filepath:
         current_dir = os.path.dirname(os.path.abspath(__file__))

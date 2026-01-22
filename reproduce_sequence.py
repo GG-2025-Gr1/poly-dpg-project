@@ -72,15 +72,22 @@ def split_edge(g: Graph, v1: Vertex, v2: Vertex):
 
     return mid
 
-def break_element(g: Graph, element_uid: str):
+def save_snapshots(g, prefix, title, highlight_ids=None):
+    # Save standard view (Cleaner, highlighted)
+    visualize_graph(g, title, f"{prefix}.png", show_attributes=False, highlight_nodes=highlight_ids)
+    # Save detailed view (Full details, all attributes)
+    visualize_graph(g, f"{title} (Szczegóły)", f"{prefix}_attrs.png", show_attributes=True)
+
+def break_element(g: Graph, element_uid: str, iter_name: str, iter_title_base: str):
     """
     Generic split for a polygon element (Quad, Hexagon, etc.) into N Quads around a center.
+    Saves an intermediate snapshot after edges are broken but before the element is replaced.
     """
     print(f"Breaking element {element_uid}...")
     el = g.get_hyperedge(element_uid)
     corners = g.get_hyperedge_vertices(element_uid)
     
-    # Sort corners angularly around centroid to ensure correct order
+    # Sort corners angularly around centroid
     cx = sum(v.x for v in corners) / len(corners)
     cy = sum(v.y for v in corners) / len(corners)
     corners.sort(key=lambda v: math.atan2(v.y - cy, v.x - cx))
@@ -99,6 +106,37 @@ def break_element(g: Graph, element_uid: str):
     center_uid = f"v_center_{element_uid}"
     center = Vertex(uid=center_uid, x=cx, y=cy)
     g.add_vertex(center)
+
+    # Pre-create internal edges (Center -> Midpoints) for visualization
+    internal_edge_ids = []
+    for mid in midpoints:
+        e_in_uid = f"E_in_{center.uid}_{mid.uid}"
+        # Check if exists (paranoia check)
+        existing = g.get_hyperedges_between_vertices(center.uid, mid.uid)
+        if not any(e.label == 'E' for e in existing):
+            e_in = Hyperedge(uid=e_in_uid, label="E", r=0, b=0)
+            g.add_hyperedge(e_in)
+            g.connect(e_in.uid, center.uid)
+            g.connect(e_in.uid, mid.uid)
+            internal_edge_ids.append(e_in_uid)
+
+    # --- INTERMEDIATE SNAPSHOT: Edges Broken & Connected ---
+    # Highlight the element, new midpoints/edges, and the internal structure
+    edge_ids = []
+    # Collect ids of edges forming the boundary now
+    for i in range(n):
+         v_curr = corners[i]
+         v_next = corners[(i + 1) % n]
+         mid = midpoints[i]
+         e_1 = g.get_hyperedges_between_vertices(v_curr.uid, mid.uid)
+         e_2 = g.get_hyperedges_between_vertices(mid.uid, v_next.uid)
+         edge_ids.extend([e.uid for e in e_1 if e.label=='E'])
+         edge_ids.extend([e.uid for e in e_2 if e.label=='E'])
+         
+    save_snapshots(g, 
+                   f"{iter_name}_edges_broken", 
+                   f"{iter_title_base} (Krawędzie Podzielone)", 
+                   highlight_ids=[element_uid, center_uid] + edge_ids + internal_edge_ids)
 
     # Create N new Quads
     for i in range(n):
@@ -119,62 +157,85 @@ def break_element(g: Graph, element_uid: str):
         for v in [v_corner, v_mid_prev, center, v_mid_next]:
             g.connect(q_new_uid, v.uid)
             
-        # Internal edge (Center -> Midpoint)
-        # We need to add internal edges. Each internal edge connects center to a midpoint.
-        # There are N midpoints.
-        # We should check if edge exists before adding (shared between sub-quads)
-        
-        # Check/Add edge Center-MidNext
-        existing_edges = g.get_hyperedges_between_vertices(center.uid, v_mid_next.uid)
-        if not any(e.label == 'E' for e in existing_edges):
-            e_in = Hyperedge(uid=f"E_in_{center.uid}_{v_mid_next.uid}", label="E", r=0, b=0)
-            g.add_hyperedge(e_in)
-            g.connect(e_in.uid, center.uid)
-            g.connect(e_in.uid, v_mid_next.uid)
+        # Internal edges are already created above
 
     # Remove old element
     g.remove_node(element_uid)
     return [f"{element_uid}_sub_{i}" for i in range(n)]
 
+def mark_sequence(g, target_uid, prefix, iter_title_base, elem_prod_name, edge_prod_name):
+    """
+    Performs a 2-step marking sequence:
+    1. Mark the element itself (R=1).
+    2. Mark its boundary edges (R=1).
+    Saves snapshots for both states with specific production titles.
+    """
+    # --- Step 1: Mark Element ---
+    print(f"Marking element {target_uid} using {elem_prod_name}...")
+    el = g.get_hyperedge(target_uid)
+    el.r = 1
+    
+    save_snapshots(g, 
+                   f"{prefix}_marked_elem", 
+                   f"{iter_title_base}: {elem_prod_name} (Oznaczenie Elementu)", 
+                   highlight_ids=[target_uid])
+
+    # --- Step 2: Mark Edges ---
+    print(f"Marking edges of {target_uid} using {edge_prod_name}...")
+    # Find boundary 'E' edges
+    vertices = g.get_hyperedge_vertices(target_uid)
+    # Sort vertices
+    cx = sum(v.x for v in vertices) / len(vertices)
+    cy = sum(v.y for v in vertices) / len(vertices)
+    vertices.sort(key=lambda v: math.atan2(v.y - cy, v.x - cx))
+
+    n = len(vertices)
+    marked_edges = []
+    
+    for i in range(n):
+        v1 = vertices[i]
+        v2 = vertices[(i + 1) % n]
+        
+        edges = g.get_hyperedges_between_vertices(v1.uid, v2.uid)
+        for e in edges:
+            if e.label == 'E':
+                e.r = 1
+                g.update_hyperedge(e.uid, r=1)
+                marked_edges.append(e.uid)
+
+    save_snapshots(g, 
+                   f"{prefix}_marked_edges", 
+                   f"{iter_title_base}: {edge_prod_name} (Oznaczenie Krawędzi)", 
+                   highlight_ids=[target_uid] + marked_edges)
+
 def run_sequence():
     # 0. Load
     g = create_target_graph()
-    visualize_graph(g, "Start", "iter_0_start.png")
+    save_snapshots(g, "iter_0_start", "Stan Początkowy")
 
     # 1. Break Bottom Rectangle (Q3)
-    # Q3 is the bottom one
-    break_element(g, "Q3")
-    visualize_graph(g, "Iteracja 1: Złamany dolny prostokąt", "iter_1.png")
+    # P0: Mark Quad, P1: Mark Edges, P5: Split
+    mark_sequence(g, "Q3", "iter_1", "Iteracja 1", "Produkcja P0", "Produkcja P1")
+    new_ids = break_element(g, "Q3", "iter_1", "Iteracja 1: Produkcja P5")
+    # Final result snapshot (optional for report but good for debug)
+    # save_snapshots(g, "iter_1_final", "Iteracja 1: Wynik P5", highlight_ids=new_ids)
 
     # 2. Break Right Hexagon (S2)
-    break_element(g, "S2")
-    visualize_graph(g, "Iteracja 2: Złamany prawy sześciokąt", "iter_2.png")
+    # P9: Mark Hex, P10: Mark Edges, P11: Split
+    mark_sequence(g, "S2", "iter_2", "Iteracja 2", "Produkcja P9", "Produkcja P10")
+    new_ids = break_element(g, "S2", "iter_2", "Iteracja 2: Produkcja P11")
 
     # 3. Break Center Square (Q1)
-    # It returns list of new UIDs. Q1 is replaced.
-    sub_q1_ids = break_element(g, "Q1")
-    visualize_graph(g, "Iteracja 3: Złamany środkowy kwadrat", "iter_3.png")
+    # P0, P1, P5
+    mark_sequence(g, "Q1", "iter_3", "Iteracja 3", "Produkcja P0", "Produkcja P1")
+    sub_q1_ids = break_element(g, "Q1", "iter_3", "Iteracja 3: Produkcja P5")
 
     # 4. Break Bottom-Right Square FROM the Center break (Q1 children)
-    # We need to find which sub-element of Q1 is in the bottom-right.
-    # Q1 was at (0,0). Bottom-Right means x > 0, y < 0.
-    # Centroid of Q1 was (0,0).
-    # We iterate over the children and check their centroids.
-    
     target_uid = None
     best_dist = float('inf')
-    # Ideal BR center is approx (0.5, -0.25) relative to (0,0) scale? 
-    # Q1 was: (-1,0.5) to (1,-0.5). Center (0,0).
-    # Quadrants:
-    # TL: center (-0.5, 0.25)
-    # TR: center (0.5, 0.25)
-    # BL: center (-0.5, -0.25)
-    # BR: center (0.5, -0.25)
-    
     target_x, target_y = 0.5, -0.25
     
     for uid in sub_q1_ids:
-        # Calculate centroid of this sub-quad
         verts = g.get_hyperedge_vertices(uid)
         cx = sum(v.x for v in verts) / 4
         cy = sum(v.y for v in verts) / 4
@@ -186,11 +247,13 @@ def run_sequence():
             
     if target_uid:
         print(f"Identified BR sub-quad: {target_uid}")
-        break_element(g, target_uid)
+        # P0, P1, P5
+        mark_sequence(g, target_uid, "iter_4", "Iteracja 4", "Produkcja P0", "Produkcja P1")
+        new_ids = break_element(g, target_uid, "iter_4", "Iteracja 4: Produkcja P5")
     else:
         print("Could not find BR sub-quad!")
+        save_snapshots(g, "iter_4_error", "Iteracja 4: Error")
 
-    visualize_graph(g, "Iteracja 4: Złamany dolny-prawy kwadrat środka", "iter_4.png")
 
 if __name__ == "__main__":
     run_sequence()
