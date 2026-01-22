@@ -69,28 +69,32 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
     # Vertices
     for node_id in vertex_nodes:
         colors_v.append("#66b2ff") # Blue
-        sizes_v.append(200)
-        labels_v[node_id] = f"{node_id}"
+        sizes_v.append(120)        # Reduced from 200
+        labels_v[node_id] = str(node_id) # Just ID
         
     # Hyperedges
     for node_id in hyperedge_nodes:
         obj = nx_graph.nodes[node_id]["data"]
         
-        if obj.label == "Q":
+        if obj.label in ["Q", "S", "P"]:
             colors_h.append("#ff9999") # Red
-            sizes_h.append(600)
-            labels_h[node_id] = f"Q\nR={obj.r}"
+            sizes_h.append(400)        # Reduced from 600
+            # Simplify label: Just Type, add '!' if R=1
+            lbl = obj.label
+            if obj.r == 1:
+                lbl += "!"
+            labels_h[node_id] = lbl
         elif obj.label == "E":
             colors_h.append("#99ff99") # Green
-            sizes_h.append(300)
-            labels_h[node_id] = f"E\nB={obj.b}\nR={obj.r}"
+            sizes_h.append(80)         # Much smaller (was 300)
+            labels_h[node_id] = ""     # Hide E labels entirely
         else:
             colors_h.append("#cccccc") # Grey
-            sizes_h.append(300)
-            labels_h[node_id] = f"{obj.label}\nR={obj.r}"
+            sizes_h.append(100)
+            labels_h[node_id] = obj.label
 
     # 3. Drawing - Layered Approach
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(10, 10)) # Slightly larger canvas
     
     # Layer 1: Hyperedges (Background)
     if hyperedge_nodes:
@@ -102,21 +106,59 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
             node_size=sizes_h,
             label="Hyperedges"
         )
-        # Layer 1b: Hyperedge Labels (Still background relative to vertices)
+        # Layer 1b: Hyperedge Labels (Only for Q/S/P)
+        # Filter labels to exclude empty ones
+        labels_h_filtered = {k: v for k, v in labels_h.items() if v}
         nx.draw_networkx_labels(
             nx_graph,
             pos,
-            labels_h,
-            font_size=9,
+            labels_h_filtered,
+            font_size=10,
             font_weight="bold"
         )
     
     # Layer 2: Edges (Middle)
-    nx.draw_networkx_edges(
-        nx_graph,
-        pos,
-        edge_color="gray"
-    )
+    solid_edges = []
+    dashed_edges = []
+
+    for u, v in nx_graph.edges():
+        node_u = nx_graph.nodes[u].get("data")
+        node_v = nx_graph.nodes[v].get("data")
+        
+        # Identify if one of them is a Hyperedge and check its label
+        h_obj = None
+        if isinstance(node_u, Hyperedge):
+            h_obj = node_u
+        elif isinstance(node_v, Hyperedge):
+            h_obj = node_v
+            
+        if h_obj:
+            if h_obj.label == 'E':
+                solid_edges.append((u, v))
+            else:
+                dashed_edges.append((u, v))
+    
+    # Draw Solid Edges (Structural)
+    if solid_edges:
+        nx.draw_networkx_edges(
+            nx_graph,
+            pos,
+            edgelist=solid_edges,
+            edge_color="black",
+            width=2.5
+        )
+        
+    # Draw Dashed Edges (Logical/Region)
+    if dashed_edges:
+        nx.draw_networkx_edges(
+            nx_graph,
+            pos,
+            edgelist=dashed_edges,
+            edge_color="gray",
+            style="dashed",
+            width=1.0,
+            alpha=0.7
+        )
         
     # Layer 3: Vertices (Foreground)
     if vertex_nodes:
@@ -128,23 +170,16 @@ def visualize_graph(graph: Graph, title: str, filepath: str = None):
             node_size=sizes_v,
             label="Vertices"
         )
-        # Layer 3b: Vertex Labels (Topmost)
+        # Layer 3b: Vertex Labels
         # Offset labels slightly above the node
-        pos_labels = {k: (v[0], v[1] + 0.1) for k, v in pos.items() if k in vertex_nodes}
+        pos_labels = {k: (v[0], v[1] + 0.08) for k, v in pos.items() if k in vertex_nodes}
         
-        # Add coordinates to vertex labels for clarity
-        enhanced_labels_v = {}
-        for node_id in vertex_nodes:
-            obj = nx_graph.nodes[node_id]["data"]
-            enhanced_labels_v[node_id] = f"{node_id}\n({obj.x},{obj.y})"
-
         nx.draw_networkx_labels(
             nx_graph,
             pos_labels,
-            enhanced_labels_v,
+            labels_v,
             font_size=8,
-            font_weight="bold",
-            bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=1) # Add background to labels
+            font_color="#333333"
         )
 
     plt.title(title)
