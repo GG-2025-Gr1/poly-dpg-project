@@ -4,9 +4,10 @@ from ..graph import Graph
 from ..elements import Hyperedge, Vertex
 from .production import Production
 
+
 class ProductionP14(Production):
     """
-    P14: Podział elementu siedmiokątnego (Q, R=1),
+    P14: Podział elementu siedmiokątnego (T, R=1),
     jeśli wszystkie jego krawędzie zostały wcześniej podzielone
     """
 
@@ -18,7 +19,7 @@ class ProductionP14(Production):
             he = data.get("data")
 
             # 1. Musi to być Hyperedge typu 'Q' z R=1
-            if not isinstance(he, Hyperedge) or he.label != 'Q' or he.r != 1:
+            if not isinstance(he, Hyperedge) or he.label != "T" or he.r != 1:
                 continue
 
             # 2. Opcjonalne filtrowanie po ID
@@ -46,12 +47,11 @@ class ProductionP14(Production):
                 if midpoint is None:
                     is_broken = False
                     break
-
             if is_broken:
                 candidates.append(he)
 
         return candidates
-    
+
     def apply_rhs(self, graph: Graph, match_node: Hyperedge):
         # 1. Pobieramy i sortujemy narożniki starego Q
         corners = graph.get_hyperedge_vertices(match_node.uid)
@@ -64,7 +64,7 @@ class ProductionP14(Production):
             v_next = corners[(i + 1) % 7]
             midpoint = self._find_midpoint_between(graph, v_curr, v_next)
             midpoints.append(midpoint)
-        
+
         # 3. Obliczenie środka
         center_x = sum(v.x for v in corners) / 7
         center_y = sum(v.y for v in corners) / 7
@@ -79,7 +79,7 @@ class ProductionP14(Production):
         # 5. Tworzenie 7 nowych Q (R=0)
         for i in range(7):
             q_uid = f"{match_node.uid}_sub_Q{i}"
-            new_q = Hyperedge(uid=q_uid, label='Q', r=0, b=0)
+            new_q = Hyperedge(uid=q_uid, label="Q", r=0, b=0)
             graph.add_hyperedge(new_q)
 
             v1 = corners[i]
@@ -89,11 +89,11 @@ class ProductionP14(Production):
 
             for v in [v1, v2, v3, v4]:
                 graph.connect(q_uid, v.uid)
-        
+
         # 6. Nowe wewnętrzne krawędzie E (R=0, B=0)
         for i, mid in enumerate(midpoints):
             e_uid = f"{match_node.uid}_inner_E{i}"
-            new_e = Hyperedge(uid=e_uid, label='E', r=0, b=0)
+            new_e = Hyperedge(uid=e_uid, label="E", r=0, b=0)
             graph.add_hyperedge(new_e)
 
             graph.connect(e_uid, mid.uid)
@@ -107,17 +107,14 @@ class ProductionP14(Production):
         cx = sum(v.x for v in vertices) / len(vertices)
         cy = sum(v.y for v in vertices) / len(vertices)
 
-        return sorted(
-            vertices,
-            key=lambda v: math.atan2(v.y - cy, v.x - cx)
-        )
-    
+        return sorted(vertices, key=lambda v: math.atan2(v.y - cy, v.x - cx))
+
     def _find_midpoint_between(
         self, graph: Graph, v1: Vertex, v2: Vertex
     ) -> Optional[Vertex]:
-        
-        v1_edges = [e for e in graph.get_vertex_hyperedges(v1.uid) if e.label == 'E']
-        v2_edges = [e for e in graph.get_vertex_hyperedges(v2.uid) if e.label == 'E']
+
+        v1_edges = [e for e in graph.get_vertex_hyperedges(v1.uid) if e.label == "E"]
+        v2_edges = [e for e in graph.get_vertex_hyperedges(v2.uid) if e.label == "E"]
 
         for e1 in v1_edges:
             for candidate in graph.get_hyperedge_vertices(e1.uid):
@@ -129,5 +126,6 @@ class ProductionP14(Production):
                 for e2 in v2_edges:
                     if candidate in graph.get_hyperedge_vertices(e2.uid):
                         return candidate
-                    
+
         return None
+
