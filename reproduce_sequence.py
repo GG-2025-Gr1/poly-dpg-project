@@ -78,6 +78,107 @@ def save_snapshots(g, prefix, title, highlight_ids=None):
     # Save detailed view (Full details, all attributes)
     visualize_graph(g, f"{title} (Szczegóły)", f"{prefix}_attrs.png", show_attributes=True)
 
+def visualize_hanging_nodes(g: Graph, element_uid: str, prefix: str, title: str):
+    """
+    Identifies hanging nodes (midpoints on edges of the element that are not its corners)
+    and visualizes them with an offset to simulate the 'hanging' state.
+    Also temporarily reconstructs the straight edge if it was removed by the neighbor.
+    """
+    print(f"Visualizing hanging nodes for {element_uid}...")
+    el = g.get_hyperedge(element_uid)
+    corners = g.get_hyperedge_vertices(element_uid)
+    
+    # Sort corners
+    cx = sum(v.x for v in corners) / len(corners)
+    cy = sum(v.y for v in corners) / len(corners)
+    corners.sort(key=lambda v: math.atan2(v.y - cy, v.x - cx))
+    
+    n = len(corners)
+    hanging_nodes_map = {} # Key: (idx_curr), Value: list of nodes
+    all_hanging_nodes = []
+    
+    temp_edges = []
+    original_positions = {}
+
+    # Identify hanging nodes per segment
+    for i in range(n):
+        v_curr = corners[i]
+        v_next = corners[(i + 1) % n]
+        
+        segment_hanging = []
+        
+        # Get all nodes in graph
+        for node_id, node_data in g.nx_graph.nodes(data=True):
+            if node_data.get("type") != "vertex":
+                continue
+            node = node_data["data"]
+
+            if node.uid == v_curr.uid or node.uid == v_next.uid:
+                continue
+            
+            # Check collinearity and betweenness
+            cross = (node.y - v_curr.y) * (v_next.x - v_curr.x) - (node.x - v_curr.x) * (v_next.y - v_curr.y)
+            if abs(cross) > 1e-9:
+                continue
+                
+            # Check bounding box
+            min_x, max_x = min(v_curr.x, v_next.x), max(v_curr.x, v_next.x)
+            min_y, max_y = min(v_curr.y, v_next.y), max(v_curr.y, v_next.y)
+            
+            if (min_x - 1e-9 <= node.x <= max_x + 1e-9) and (min_y - 1e-9 <= node.y <= max_y + 1e-9):
+                 if any(c.uid == node_id for c in corners):
+                     continue
+                 segment_hanging.append(node)
+        
+        if segment_hanging:
+            hanging_nodes_map[i] = segment_hanging
+            all_hanging_nodes.extend(segment_hanging)
+            
+            # Check if direct edge exists
+            edges = g.get_hyperedges_between_vertices(v_curr.uid, v_next.uid)
+            has_edge = any(e.label == 'E' for e in edges)
+            
+            if not has_edge:
+                # Create temporary straight edge
+                temp_uid = f"TEMP_E_{v_curr.uid}_{v_next.uid}"
+                # Use R=1 to indicate it's marked for breakage (as in the reference image)
+                temp_e = Hyperedge(uid=temp_uid, label="E", r=1, b=0) 
+                g.add_hyperedge(temp_e)
+                g.connect(temp_uid, v_curr.uid)
+                g.connect(temp_uid, v_next.uid)
+                temp_edges.append(temp_uid)
+
+    if not all_hanging_nodes:
+        print("No hanging nodes found.")
+        return
+
+    # Apply offset
+    OFFSET_MAGNITUDE = 0.3 
+    
+    for node in all_hanging_nodes:
+        original_positions[node.uid] = (node.x, node.y)
+        
+        # Calculate direction from center to node
+        dx = node.x - cx
+        dy = node.y - cy
+        dist = math.sqrt(dx*dx + dy*dy)
+        
+        if dist > 1e-9:
+            # Shift AWAY from center
+            g.update_vertex(node.uid, x=node.x + (dx/dist)*OFFSET_MAGNITUDE, y=node.y + (dy/dist)*OFFSET_MAGNITUDE)
+
+    # Save snapshot
+    # Highlight element, hanging nodes, and temporary edges
+    save_snapshots(g, prefix, title, highlight_ids=[element_uid] + temp_edges + [n.uid for n in all_hanging_nodes])
+
+    # Restore positions
+    for uid, (ox, oy) in original_positions.items():
+        g.update_vertex(uid, x=ox, y=oy)
+        
+    # Remove temporary edges
+    for text_uid in temp_edges:
+        g.remove_node(text_uid)
+
 def break_element(g: Graph, element_uid: str, iter_name: str, iter_title_base: str):
     """
     Generic split for a polygon element (Quad, Hexagon, etc.) into N Quads around a center.
@@ -221,11 +322,13 @@ def run_sequence():
     # 2. Break Right Hexagon (S2)
     # P9: Mark Hex, P10: Mark Edges, P11: Split
     mark_sequence(g, "S2", "iter_2", "Iteracja 2", "Produkcja P9", "Produkcja P10")
+    visualize_hanging_nodes(g, "S2", "iter_2_hanging", "Iteracja 2 (Wierzchołki Wiszące)")
     new_ids = break_element(g, "S2", "iter_2", "Iteracja 2: Produkcje P2-P4 + P11")
 
     # 3. Break Center Square (Q1)
     # P0, P1, P5
     mark_sequence(g, "Q1", "iter_3", "Iteracja 3", "Produkcja P0", "Produkcja P1")
+    visualize_hanging_nodes(g, "Q1", "iter_3_hanging", "Iteracja 3 (Wierzchołki Wiszące)")
     sub_q1_ids = break_element(g, "Q1", "iter_3", "Iteracja 3: Produkcje P2-P4 + P5")
 
     # 4. Break Bottom-Right Square FROM the Center break (Q1 children)
@@ -247,6 +350,7 @@ def run_sequence():
         print(f"Identified BR sub-quad: {target_uid}")
         # P0, P1, P5
         mark_sequence(g, target_uid, "iter_4", "Iteracja 4", "Produkcja P0", "Produkcja P1")
+        visualize_hanging_nodes(g, target_uid, "iter_4_hanging", "Iteracja 4 (Wierzchołki Wiszące)")
         new_ids = break_element(g, target_uid, "iter_4", "Iteracja 4: Produkcje P2-P4 + P5")
     else:
         print("Could not find BR sub-quad!")
