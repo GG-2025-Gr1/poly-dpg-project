@@ -124,10 +124,14 @@ if __name__ == "__main__":
     p12 = ProductionP12()
     p13 = ProductionP13()
     p14 = ProductionP14()
-    # mark EI4 for refinement
 
+    visualize_graph(g, "Graph", filepath="graph0.png")
     break_element(g, "EI4", p12, p13, p14)
+    visualize_graph(g, "Graph", filepath="graph1.png")
     break_element(g, "EI3", p0, p1, p5)
+    visualize_graph(g, "Graph", filepath="graph2.png")
     break_element(g, "EI5", p0, p1, p5)
+    visualize_graph(g, "Graph", filepath="graph3.png")
     break_element(g, "EI5_sub_Q2", p0, p1, p5)
+    visualize_graph(g, "Graph", filepath="graph4.png")
     visualize_graph(g, "Graph")
