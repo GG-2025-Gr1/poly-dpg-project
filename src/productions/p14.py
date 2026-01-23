@@ -6,7 +6,7 @@ from .production import Production
 
 class ProductionP14(Production):
     """
-    P14: Podział elementu siedmiokątnego (Q, R=1),
+    P14: Podział elementu siedmiokątnego (T, R=1),
     jeśli wszystkie jego krawędzie zostały wcześniej podzielone
     """
 
@@ -17,8 +17,8 @@ class ProductionP14(Production):
         for node_id, data in graph.nx_graph.nodes(data=True):
             he = data.get("data")
 
-            # 1. Musi to być Hyperedge typu 'Q' z R=1
-            if not isinstance(he, Hyperedge) or he.label != 'Q' or he.r != 1:
+            # 1. Musi to być Hyperedge typu 'T' z R=1
+            if not isinstance(he, Hyperedge) or he.label != 'T' or he.r != 1:
                 continue
 
             # 2. Opcjonalne filtrowanie po ID
@@ -53,7 +53,7 @@ class ProductionP14(Production):
         return candidates
     
     def apply_rhs(self, graph: Graph, match_node: Hyperedge):
-        # 1. Pobieramy i sortujemy narożniki starego Q
+        # 1. Pobieramy i sortujemy narożniki starego T
         corners = graph.get_hyperedge_vertices(match_node.uid)
         corners = self._sort_vertices_counter_clockwise(corners)
 
@@ -73,13 +73,13 @@ class ProductionP14(Production):
         center = Vertex(uid=center_uid, x=center_x, y=center_y)
         graph.add_vertex(center)
 
-        # 4. Usunięcie starego Q
+        # 4. Usunięcie starego T
         graph.remove_node(match_node.uid)
 
-        # 5. Tworzenie 7 nowych Q (R=0)
+        # 5. Tworzenie 7 nowych T (R=0)
         for i in range(7):
             q_uid = f"{match_node.uid}_sub_Q{i}"
-            new_q = Hyperedge(uid=q_uid, label='Q', r=0, b=0)
+            new_q = Hyperedge(uid=q_uid, label='T', r=0, b=0)
             graph.add_hyperedge(new_q)
 
             v1 = corners[i]
@@ -99,7 +99,7 @@ class ProductionP14(Production):
             graph.connect(e_uid, mid.uid)
             graph.connect(e_uid, center.uid)
 
-        print(f"-> P14: Podzielono siedmiokąt Q {match_node.uid}")
+        print(f"-> P14: Podzielono siedmiokąt T {match_node.uid}")
 
     # -----------------------------------------------------------------
 
@@ -123,8 +123,8 @@ class ProductionP14(Production):
             for candidate in graph.get_hyperedge_vertices(e1.uid):
                 if candidate in (v1, v2):
                     continue
-                if not candidate.hanging:
-                    continue
+                # if not candidate.hanging:
+                #     continue
 
                 for e2 in v2_edges:
                     if candidate in graph.get_hyperedge_vertices(e2.uid):

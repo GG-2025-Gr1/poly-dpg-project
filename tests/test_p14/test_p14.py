@@ -1,5 +1,19 @@
 import pytest
 from src.productions.p14 import ProductionP14
+from src.productions.p12 import ProductionP12
+from src.productions.p0 import ProductionP0
+from src.productions.p1 import ProductionP1
+from src.productions.p2 import ProductionP2
+from src.productions.p3 import ProductionP3
+from src.productions.p4 import ProductionP4
+from src.productions.p5 import ProductionP5
+from src.productions.p6 import ProductionP6
+from src.productions.p7 import ProductionP7
+from src.productions.p8 import ProductionP8
+from src.productions.p9 import ProductionP9
+from src.productions.p10 import ProductionP10
+from src.productions.p11 import ProductionP11
+from src.productions.p13 import ProductionP13
 from src.graph import Graph
 from src.elements import Vertex, Hyperedge
 from src.utils.visualization import visualize_graph
@@ -37,10 +51,10 @@ def create_base_graph():
         graph.add_vertex(mv)
         midpoints.append(mv)
 
-    q = Hyperedge("Q1", "Q", r=1, b=0)
-    graph.add_hyperedge(q)
+    t = Hyperedge("T1", "T", r=1, b=0)
+    graph.add_hyperedge(t)
     for v in corners:
-        graph.connect("Q1", v.uid)
+        graph.connect("T1", v.uid)
     
     for i in range(7):
         v1 = corners[i]
@@ -169,7 +183,7 @@ def test_error_missing_midpoint():
 def test_error_wrong_R():
     graph = create_base_graph()
 
-    graph.update_hyperedge("Q1", r=0)
+    graph.update_hyperedge("T1", r=0)
 
     visualize_graph(
         graph,
@@ -229,10 +243,10 @@ def test_multiple_matches():
         graph.add_vertex(mv)
         mids_A.append(mv)
 
-    qA = Hyperedge("Q_A", "Q", r=1, b=0)
-    graph.add_hyperedge(qA)
+    tA = Hyperedge("T_A", "T", r=1, b=0)
+    graph.add_hyperedge(tA)
     for v in corners_A:
-        graph.connect(qA.uid, v.uid)
+        graph.connect(tA.uid, v.uid)
 
     for i in range(7):
         e1 = Hyperedge(f"A_E1_{i}", "E", 0, 1)
@@ -268,10 +282,10 @@ def test_multiple_matches():
         graph.add_vertex(mv)
         mids_B.append(mv)
 
-    qB = Hyperedge("Q_B", "Q", r=1, b=0)
-    graph.add_hyperedge(qB)
+    tB = Hyperedge("T_B", "T", r=1, b=0)
+    graph.add_hyperedge(tB)
     for v in corners_B:
-        graph.connect(qB.uid, v.uid)
+        graph.connect(tB.uid, v.uid)
 
     for i in range(7):
         e1 = Hyperedge(f"B_E1_{i}", "E", 0, 1)
@@ -309,7 +323,7 @@ def test_multiple_matches():
 def test_error_wrong_label():
     graph = create_base_graph()
 
-    graph.update_hyperedge("Q1", label="S")
+    graph.update_hyperedge("T1", label="S")
 
     visualize_graph(
         graph,
@@ -319,3 +333,124 @@ def test_error_wrong_label():
 
     p14 = ProductionP14()
     assert len(p14.find_lhs(graph)) == 0
+
+
+def test_create_custom_graph():
+    import math
+    
+    graph = Graph()
+
+    R_hex = 3.0
+    center_hex_x = -5.0
+    center_hex_y = 0.0
+    angles_hex = [math.radians(90 - 60 * i) for i in range(6)]
+    for i in range(6):
+        angle = angles_hex[i]
+        x = center_hex_x + R_hex * math.cos(angle)
+        y = center_hex_y + R_hex * math.sin(angle)
+        v = Vertex(uid=i + 1, x=x, y=y)
+        graph.add_vertex(v)
+
+
+    positions_hept = {
+        7: (5.0, 3.0),
+        8: (7.5, 2.0),
+        9: (8.5, 0.0),
+        10: (7.5, -2.0),
+        11: (5.0, -3.0),
+        12: (2.5, -1.5),
+        13: (2.5, 1.5),
+    }
+    for uid, (x, y) in positions_hept.items():
+        v = Vertex(uid=uid, x=x, y=y)
+        graph.add_vertex(v)
+
+    hex_edges = [(1,2,0), (2,3,0), (3,4,0), (4,5,1), (5,6,1), (6,1,1)]
+    for idx, (u, v, b) in enumerate(hex_edges):
+        e = Hyperedge(f"Hex_E_{idx}", "E", r=0, b=b)
+        graph.add_hyperedge(e)
+        graph.connect(e.uid, u)
+        graph.connect(e.uid, v)
+
+    hept_edges = [(7,8,1), (8,9,1), (9,10,1), (10,11,1), (11,12,0), (12,13,0), (13,7,0)]
+    for idx, (u, v, b) in enumerate(hept_edges):
+        e = Hyperedge(f"Hept_E_{idx}", "E", r=0, b=b)
+        graph.add_hyperedge(e)
+        graph.connect(e.uid, u)
+        graph.connect(e.uid, v)
+
+    inter_edges = [(1,7,1), (2,13,0), (3,12,0), (4,11,1)]
+    for idx, (u, v, b) in enumerate(inter_edges):
+        e = Hyperedge(f"Inter_E_{idx}", "E", r=0, b=b)
+        graph.add_hyperedge(e)
+        graph.connect(e.uid, u)
+        graph.connect(e.uid, v)
+
+    s_hex = Hyperedge("S_hex", "S", r=0, b=0)
+    graph.add_hyperedge(s_hex)
+    for v in [1,2,3,4,5,6]:
+        graph.connect(s_hex.uid, v)
+
+    t_hept = Hyperedge("T_hept", "T", r=0, b=0)
+    graph.add_hyperedge(t_hept)
+    for v in [7,8,9,10,11,12,13]:
+        graph.connect(t_hept.uid, v)
+
+    q1 = Hyperedge("Q1", "Q", r=0, b=0)
+    graph.add_hyperedge(q1)
+    for v in [1,2,13,7]:
+        graph.connect(q1.uid, v)
+
+    q2 = Hyperedge("Q2", "Q", r=0, b=0)
+    graph.add_hyperedge(q2)
+    for v in [2,3,12,13]:
+        graph.connect(q2.uid, v)
+
+    q3 = Hyperedge("Q3", "Q", r=0, b=0)
+    graph.add_hyperedge(q3)
+    for v in [3,4,11,12]:
+        graph.connect(q3.uid, v)
+
+    p12 = ProductionP12()
+    p12.apply(graph)
+
+    p0 = ProductionP0()
+    p0.apply(graph)
+
+    p13 = ProductionP13()
+    p13.apply(graph)
+
+    p4 = ProductionP4()
+    p4.apply(graph)
+    p4.apply(graph)
+    p4.apply(graph)
+
+    p3 = ProductionP3()
+    p3.apply(graph)
+    p3.apply(graph)
+    p3.apply(graph)
+
+    p14 = ProductionP14()
+    p14.apply(graph)
+
+    p1 = ProductionP1()
+    p1.apply(graph)
+
+    p4.apply(graph)
+
+    # p2 = ProductionP2()
+    # p2.apply(graph)
+
+    # p3.apply(graph)
+    # p3.apply(graph)
+
+    # p5 = ProductionP5()
+    # p5.apply(graph)
+
+    # assert 1 == 2
+
+    visualize_graph(
+        graph,
+        "Custom Graph: Hexagon + Heptagon Connected",
+        f"{VIS_DIR}/custom_graph.png"
+    )
