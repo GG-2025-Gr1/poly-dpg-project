@@ -365,26 +365,31 @@ def test_create_custom_graph():
         v = Vertex(uid=uid, x=x, y=y)
         graph.add_vertex(v)
 
+    edge_number = 1
+
     hex_edges = [(1,2,0), (2,3,0), (3,4,0), (4,5,1), (5,6,1), (6,1,1)]
     for idx, (u, v, b) in enumerate(hex_edges):
-        e = Hyperedge(f"Hex_E_{idx}", "E", r=0, b=b)
+        e = Hyperedge(f"E{edge_number}", "E", r=0, b=b)
         graph.add_hyperedge(e)
         graph.connect(e.uid, u)
         graph.connect(e.uid, v)
+        edge_number += 1
 
     hept_edges = [(7,8,1), (8,9,1), (9,10,1), (10,11,1), (11,12,0), (12,13,0), (13,7,0)]
     for idx, (u, v, b) in enumerate(hept_edges):
-        e = Hyperedge(f"Hept_E_{idx}", "E", r=0, b=b)
+        e = Hyperedge(f"E{edge_number}", "E", r=0, b=b)
         graph.add_hyperedge(e)
         graph.connect(e.uid, u)
         graph.connect(e.uid, v)
+        edge_number += 1
 
     inter_edges = [(1,7,1), (2,13,0), (3,12,0), (4,11,1)]
     for idx, (u, v, b) in enumerate(inter_edges):
-        e = Hyperedge(f"Inter_E_{idx}", "E", r=0, b=b)
+        e = Hyperedge(f"E{edge_number}", "E", r=0, b=b)
         graph.add_hyperedge(e)
         graph.connect(e.uid, u)
         graph.connect(e.uid, v)
+        edge_number += 1
 
     s_hex = Hyperedge("S_hex", "S", r=0, b=0)
     graph.add_hyperedge(s_hex)
@@ -435,19 +440,6 @@ def test_create_custom_graph():
 
     p1 = ProductionP1()
     p1.apply(graph)
-
-    p4.apply(graph)
-
-    # p2 = ProductionP2()
-    # p2.apply(graph)
-
-    # p3.apply(graph)
-    # p3.apply(graph)
-
-    # p5 = ProductionP5()
-    # p5.apply(graph)
-
-    # assert 1 == 2
 
     visualize_graph(
         graph,

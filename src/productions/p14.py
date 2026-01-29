@@ -76,10 +76,10 @@ class ProductionP14(Production):
         # 4. Usunięcie starego T
         graph.remove_node(match_node.uid)
 
-        # 5. Tworzenie 7 nowych T (R=0)
+        # 5. Tworzenie 7 nowych Q (R=0)
         for i in range(7):
             q_uid = f"{match_node.uid}_sub_Q{i}"
-            new_q = Hyperedge(uid=q_uid, label='T', r=0, b=0)
+            new_q = Hyperedge(uid=q_uid, label='Q', r=0, b=0)
             graph.add_hyperedge(new_q)
 
             v1 = corners[i]
