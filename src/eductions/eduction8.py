@@ -78,66 +78,212 @@ def create_custom_graph():
         graph.connect(e.uid, u)
         graph.connect(e.uid, v)
         edge_number += 1
-        
-    
 
     s_hex = Hyperedge("S_hex", "S", r=0, b=0)
     graph.add_hyperedge(s_hex)
     for v in [1,2,3,4,5,6]:
         graph.connect(s_hex.uid, v)
 
-    # t_hept = Hyperedge("T_hept", "T", r=0, b=0)
-    # graph.add_hyperedge(t_hept)
-    # for v in [7,8,9,10,11,12,13]:
-    #     graph.connect(t_hept.uid, v)
+    t_hept = Hyperedge("T_hept", "T", r=0, b=0)
+    graph.add_hyperedge(t_hept)
+    for v in [7,8,9,10,11,12,13]:
+        graph.connect(t_hept.uid, v)
 
-    # q1 = Hyperedge("Q1", "Q", r=0, b=0)
-    # graph.add_hyperedge(q1)
-    # for v in [1,2,13,7]:
-    #     graph.connect(q1.uid, v)
+    q1 = Hyperedge("Q1", "Q", r=0, b=0)
+    graph.add_hyperedge(q1)
+    for v in [1,2,13,7]:
+        graph.connect(q1.uid, v)
 
-    # q2 = Hyperedge("Q2", "Q", r=0, b=0)
-    # graph.add_hyperedge(q2)
-    # for v in [2,3,12,13]:
-    #     graph.connect(q2.uid, v)
+    q2 = Hyperedge("Q2", "Q", r=0, b=0)
+    graph.add_hyperedge(q2)
+    for v in [2,3,12,13]:
+        graph.connect(q2.uid, v)
 
-    # q3 = Hyperedge("Q3", "Q", r=0, b=0)
-    # graph.add_hyperedge(q3)
-    # for v in [3,4,11,12]:
-    #     graph.connect(q3.uid, v)
+    q3 = Hyperedge("Q3", "Q", r=0, b=0)
+    graph.add_hyperedge(q3)
+    for v in [3,4,11,12]:
+        graph.connect(q3.uid, v)
+        
+    visualize_graph(
+        graph,
+        "Custom Graph: Hexagon + Heptagon Connected",
+        f"eductions/eduction8/step0.png"
+    )
 
     p12 = ProductionP12()
     p12.apply(graph)
+    
+    visualize_graph(
+        graph,
+        "P12 Applied",
+        f"eductions/eduction8/step1.png"
+    )
 
     p0 = ProductionP0()
-    p0.apply(graph)
+    p0.apply(graph, target_id="Q1")
+    
+    visualize_graph(
+        graph,
+        "P0 Applied",
+        f"eductions/eduction8/step3.png"
+    )
 
     p13 = ProductionP13()
     p13.apply(graph)
+    
+    visualize_graph(
+        graph,
+        "P13 Applied",
+        f"eductions/eduction8/step4.png"
+    )
 
     p4 = ProductionP4()
     p4.apply(graph)
-    p4.apply(graph)
-    p4.apply(graph)
+    
+    visualize_graph(
+        graph,
+        "P4 Applied Three Times",
+        f"eductions/eduction8/step5.png"
+    )
 
     p3 = ProductionP3()
     p3.apply(graph)
-    p3.apply(graph)
-    p3.apply(graph)
+    
+    visualize_graph(
+        graph,
+        "P3 Applied Three Times",
+        f"eductions/eduction8/step6.png"
+    )
 
     p14 = ProductionP14()
     p14.apply(graph)
+    
+    visualize_graph(
+        graph,
+        "P14 Applied",
+        f"eductions/eduction8/step7.png"
+    )
 
     p1 = ProductionP1()
     p1.apply(graph)
     
-    p2 = ProductionP2()
-    p2.apply(graph)
-
     visualize_graph(
         graph,
-        "Custom Graph: Hexagon + Heptagon Connected",
-        f"visualizations/eductions/custom_graph.png"
+        "P1 Applied",
+        f"eductions/eduction8/step8.png"
+    )
+    
+    p4 = ProductionP4()
+    p4.apply(graph)
+    
+    visualize_graph(
+        graph,
+        "P4 Applied",
+        f"eductions/eduction8/step9.png"
+    )
+    
+    p2 = ProductionP2()
+    p2.apply(graph)
+    
+    visualize_graph(
+        graph,
+        "P2 Applied",
+        f"eductions/eduction8/step10.png"
+    )
+    
+    p3.apply(graph)
+    
+    visualize_graph(
+        graph,
+        "P3 Applied",
+        f"eductions/eduction8/step11.png"
+    )
+    
+    p5 = ProductionP5()
+    p5.apply(graph)
+    
+    visualize_graph(
+        graph,
+        "P5 Applied",
+        f"eductions/eduction8/step12.png"
+    )
+    
+    p2.apply(graph)
+    
+    visualize_graph(
+        graph,
+        "P2 Applied Again",
+        f"eductions/eduction8/step13.png"
+    )
+    
+    p0.apply(graph, target_id="Q9")
+    visualize_graph(
+        graph,
+        "P0 Applied Again",
+        f"eductions/eduction8/step14.png"
+    )
+    
+    p1.apply(graph)
+    visualize_graph(
+        graph,
+        "P1 Applied Again",
+        f"eductions/eduction8/step15.png"
+    )
+    
+    p4.apply(graph)
+    visualize_graph(
+        graph,
+        "P4 Applied Again",
+        f"eductions/eduction8/step16.png"
+    )
+    p3.apply(graph)
+    visualize_graph(
+        graph,
+        "P3 Applied Again",
+        f"eductions/eduction8/step17.png"
+    )
+    p5.apply(graph)
+    visualize_graph(
+        graph,
+        "P5 Applied Again",
+        f"eductions/eduction8/step18.png"
+    )
+    
+    p0.apply(graph, target_id="Q13")
+    visualize_graph(
+        graph,
+        "P0 Applied on Q13",
+        f"eductions/eduction8/step19.png"
+    )
+    p1.apply(graph)
+    visualize_graph(
+        graph,
+        "P1 Applied on Q13",
+        f"eductions/eduction8/step20.png"
+    )
+    p4.apply(graph)
+    visualize_graph(
+        graph,
+        "P4 Applied on Q13",
+        f"eductions/eduction8/step21.png"
+    )
+    p2.apply(graph)
+    visualize_graph(
+        graph,
+        "P2 Applied on Q13",
+        f"eductions/eduction8/step22.png"
+    )
+    p3.apply(graph)
+    visualize_graph(
+        graph,
+        "P3 Applied on Q13",
+        f"eductions/eduction8/step23.png"
+    )
+    p5.apply(graph)
+    visualize_graph(
+        graph,
+        "P5 Applied on Q13",
+        f"eductions/eduction8/step24.png"
     )
     
 

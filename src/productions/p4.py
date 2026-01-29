@@ -1,4 +1,5 @@
 from typing import List, Union
+import uuid
 
 from .production import Production
 from ..graph import Graph
@@ -83,14 +84,8 @@ class ProductionP4(Production):
         mid_x = (v1.x + v2.x) / 2.0
         mid_y = (v1.y + v2.y) / 2.0
         
-        # Generate new vertex ID
-        # Simple approach: use max existing vertex ID + 1
-        max_vertex_id = max(
-            [node_id for node_id, data in graph._nx_graph.nodes(data=True) 
-             if isinstance(data.get("data"), Vertex)],
-            default=0
-        )
-        new_vertex_id = max_vertex_id + 1
+        # Generate new vertex ID based on the edge being split
+        new_vertex_id = f"{match_node.uid}_v"
         
         # Create new vertex (not hanging, as it's on a boundary edge)
         new_vertex = Vertex(uid=new_vertex_id, x=mid_x, y=mid_y, hanging=False)
@@ -99,15 +94,9 @@ class ProductionP4(Production):
         if self.DEBUG:
             print(f"[P4] Utworzono nowy wierzchołek {new_vertex_id} w ({mid_x}, {mid_y})")
 
-        # Generate new edge IDs
-        max_edge_id = max(
-            [int(str(node_id).replace("E", "")) 
-             for node_id, data in graph._nx_graph.nodes(data=True) 
-             if isinstance(data.get("data"), Hyperedge) and str(node_id).startswith("E")],
-            default=0
-        )
-        edge1_id = f"E{max_edge_id + 1}"
-        edge2_id = f"E{max_edge_id + 2}"
+        # Generate new edge IDs based on the edge being split
+        edge1_id = f"{match_node.uid}_e1"
+        edge2_id = f"{match_node.uid}_e2"
 
         # Create two new edges with B=1, R=0
         edge1 = Hyperedge(uid=edge1_id, label="E", r=0, b=1)

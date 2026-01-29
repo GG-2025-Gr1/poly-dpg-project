@@ -69,17 +69,40 @@ class ProductionP14(Production):
         center_x = sum(v.x for v in corners) / 7
         center_y = sum(v.y for v in corners) / 7
 
-        center_uid = f"{match_node.uid}_center"
+        # Find max numeric vertex ID (filter out string IDs and only compare integers)
+        numeric_vertex_ids = []
+        for node_id, data in graph.nx_graph.nodes(data=True):
+            if isinstance(data.get("data"), Vertex) and isinstance(node_id, int):
+                numeric_vertex_ids.append(node_id)
+        
+        max_vertex_id = max(numeric_vertex_ids, default=0)
+        print(f"Max vertex ID: {max_vertex_id}")
+        center_uid = max_vertex_id + 1
         center = Vertex(uid=center_uid, x=center_x, y=center_y)
         graph.add_vertex(center)
 
         # 4. Usunięcie starego T
         graph.remove_node(match_node.uid)
 
+        # --- helper: policz max ID dla danego prefiksu (Q/E) ---
+        def _max_numeric_id(prefix: str) -> int:
+            vals = []
+            for node_id, data in graph._nx_graph.nodes(data=True):
+                he = data.get("data")
+                if isinstance(he, Hyperedge) and str(node_id).startswith(prefix):
+                    s = str(node_id)[len(prefix):]  # np. "12" z "Q12"
+                    try:
+                        vals.append(int(s))
+                    except ValueError:
+                        pass
+            return max(vals, default=0)
+
         # 5. Tworzenie 7 nowych Q (R=0)
-        for i in range(7):
-            q_uid = f"{match_node.uid}_sub_Q{i}"
-            new_q = Hyperedge(uid=q_uid, label='Q', r=0, b=0)
+        max_q_id = _max_numeric_id("Q")
+        new_q_ids = [f"Q{max_q_id + i}" for i in range(1, 8)]  # 7 sztuk
+
+        for i, q_uid in enumerate(new_q_ids):
+            new_q = Hyperedge(uid=q_uid, label="Q", r=0, b=0)
             graph.add_hyperedge(new_q)
 
             v1 = corners[i]
@@ -87,17 +110,20 @@ class ProductionP14(Production):
             v3 = center
             v4 = midpoints[(i - 1) % 7]
 
-            for v in [v1, v2, v3, v4]:
+            for v in (v1, v2, v3, v4):
                 graph.connect(q_uid, v.uid)
-        
+
         # 6. Nowe wewnętrzne krawędzie E (R=0, B=0)
+        max_e_id = _max_numeric_id("E")
+
         for i, mid in enumerate(midpoints):
-            e_uid = f"{match_node.uid}_inner_E{i}"
-            new_e = Hyperedge(uid=e_uid, label='E', r=0, b=0)
+            e_uid = f"E{max_e_id + i + 1}"
+            new_e = Hyperedge(uid=e_uid, label="E", r=0, b=0)
             graph.add_hyperedge(new_e)
 
             graph.connect(e_uid, mid.uid)
             graph.connect(e_uid, center.uid)
+
 
         print(f"-> P14: Podzielono siedmiokąt T {match_node.uid}")
 
