@@ -20,53 +20,53 @@ class ProductionP4(Production):
         candidates: List[Hyperedge] = []
 
         for _, data in graph._nx_graph.nodes(data=True):
-            if self.DEBUG:
-                print(f"[P4] Sprawdzam węzeł: {data}")
+            # if self.DEBUG:
+                # print(f"[P4] Sprawdzam węzeł: {data}")
 
             hyperedge_obj = data.get("data")
 
             # 1. Must be a Hyperedge
             if not isinstance(hyperedge_obj, Hyperedge):
-                if self.DEBUG:
-                    print("[P4] - pomijam, nie jest Hyperedge.")
+                # if self.DEBUG:
+                #     print("[P4] - pomijam, nie jest Hyperedge.")
                 continue
 
             # 2. If target_id is given, only consider that specific node
             if target_id is not None and hyperedge_obj.uid != target_id:
-                if self.DEBUG:
-                    print(f"[P4] - pomijam, nie jest celem (target_id={target_id}).")
+                # if self.DEBUG:
+                #     print(f"[P4] - pomijam, nie jest celem (target_id={target_id}).")
                 continue
 
             # 3. Must have label E
             if hyperedge_obj.label != "E":
-                if self.DEBUG:
-                    print("[P4] - pomijam, nie jest E.")
+                # if self.DEBUG:
+                #     print("[P4] - pomijam, nie jest E.")
                 continue
 
             # 4. Must have R=1
             if hyperedge_obj.r != 1:
-                if self.DEBUG:
-                    print("[P4] - pomijam, R != 1.")
+                # if self.DEBUG:
+                #     print("[P4] - pomijam, R != 1.")
                 continue
 
             # 5. Must have B=1 (boundary edge)
             if hyperedge_obj.b != 1:
-                if self.DEBUG:
-                    print("[P4] - pomijam, B != 1.")
+                # if self.DEBUG:
+                #     print("[P4] - pomijam, B != 1.")
                 continue
 
             # 6. Must be connected to exactly 2 vertices
             hyperedge_vertices = graph.get_hyperedge_vertices(hyperedge_obj.uid)
-            if self.DEBUG:
-                print(f"[P4] - znalezione wierzchołki hiperkrawędzi: {hyperedge_vertices}")
+            # if self.DEBUG:
+            #     print(f"[P4] - znalezione wierzchołki hiperkrawędzi: {hyperedge_vertices}")
 
-            if len(hyperedge_vertices) != 2:
-                if self.DEBUG:
-                    print("[P4] - pomijam, nie ma dokładnie 2 wierzchołków.")
-                continue
+            # if len(hyperedge_vertices) != 2:
+            #     if self.DEBUG:
+            #         print("[P4] - pomijam, nie ma dokładnie 2 wierzchołków.")
+            #     continue
 
-            if self.DEBUG:
-                print(f"[P4] - znaleziono kandydata: {hyperedge_obj}")
+            # if self.DEBUG:
+            #     print(f"[P4] - znaleziono kandydata: {hyperedge_obj}")
             candidates.append(hyperedge_obj)
 
         return candidates

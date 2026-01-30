@@ -148,8 +148,8 @@ class ProductionP5(Production):
                     continue
 
                 # Dodatkowo możemy sprawdzić, czy jest wiszący (opcjonalne, ale zgodne z teorią)
-                if not potential_mid.hanging:
-                    continue
+                # if not potential_mid.hanging:
+                #     continue
 
                 # Sprawdzamy, czy ten potential_mid łączy się z v2 przez inną krawędź
                 for e2 in v2_edges:
