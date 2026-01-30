@@ -17,35 +17,25 @@ def create_hypergraph_g5():
         g.add_vertex(Vertex(uid=uid, x=x, y=y))
 
     # --- KRAWĘDZIE ---
-    # Directions aligned to form proper cycles where possible
+    # b=0: Wnętrze, b=1: Brzeg
+    # E13 (9-11) jest b=0, bo to styk Q_top i P_right
     edges = [
-        # Dół (Q_bottom)
+        # Q_bottom
         ("E1", "1", "2", 1), 
         ("E2", "1", "3", 1), 
         ("E3", "1", "4", 0),   
-        
-        # Środek (Q_center)
         ("E4", "4", "5", 0),   
         ("E5", "2", "5", 0),   
-        
-        # P_right
         ("E6", "2", "6", 1), 
-        
-        # S_left
         ("E7", "3", "7", 1), 
         ("E8", "4", "8", 0),   
-        
-        # Q_center
-        ("E9", "8", "9", 0),   # 8->9
+        ("E9", "8", "9", 0),   
         ("E10", "5", "9", 0),  
-        
-        # Q_top (8,9,11,10) - Cycle: 8->9->11->10->8
-        ("E13", "9", "11", 1), # 9->11 (Boundary)
-        ("E14", "11", "10", 1),# 11->10 (Boundary) - FIXED DIRECTION
-        ("E11", "10", "8", 1), # 10->8 (Boundary) - FIXED DIRECTION
-        
-        ("E12", "7", "10", 1), # S_left top
-        ("E15", "6", "11", 1)  # P_right top
+        ("E11", "8", "10", 1), 
+        ("E12", "7", "10", 1), 
+        ("E13", "9", "11", 0), # KLUCZOWE: b=0
+        ("E14", "10", "11", 1),
+        ("E15", "6", "11", 1)  
     ]
 
     for uid, u, v, b in edges:
@@ -53,29 +43,29 @@ def create_hypergraph_g5():
         g.connect(uid, u)
         g.connect(uid, v)
 
-    # --- ELEMENTY (INTERIORS) ---
+    # --- ELEMENTY ---
     
-    # 1. Q_bottom
+    # Q_bottom
     q_bottom = Hyperedge(uid="Q_bottom", label="Q", r=0, b=0)
     g.add_hyperedge(q_bottom)
     for v in ["1", "2", "5", "4"]: g.connect("Q_bottom", v)
 
-    # 2. Q_center
+    # Q_center
     q_center = Hyperedge(uid="Q_center", label="Q", r=0, b=0)
     g.add_hyperedge(q_center)
     for v in ["4", "5", "9", "8"]: g.connect("Q_center", v)
 
-    # 3. Q_top (8, 9, 11, 10)
+    # Q_top (8,9,11,10)
     q_top = Hyperedge(uid="Q_top", label="Q", r=0, b=0)
     g.add_hyperedge(q_top)
     for v in ["8", "9", "11", "10"]: g.connect("Q_top", v)
 
-    # 4. S_left
+    # S_left
     s_left = Hyperedge(uid="S_left", label="S", r=0, b=0)
     g.add_hyperedge(s_left)
     for v in ["1", "4", "8", "10", "7", "3"]: g.connect("S_left", v)
 
-    # 5. P_right (2, 6, 11, 9, 5)
+    # P_right (2,6,11,9,5)
     p_right = Hyperedge(uid="P_right", label="P", r=0, b=0)
     g.add_hyperedge(p_right)
     for v in ["2", "6", "11", "9", "5"]: g.connect("P_right", v)

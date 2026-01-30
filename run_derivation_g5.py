@@ -1,6 +1,5 @@
 import os
 import math
-from itertools import combinations
 from src.graph import Graph
 from src.utils.visualization import visualize_graph
 from create_hypergraph_g5 import create_hypergraph_g5
@@ -26,7 +25,11 @@ def save_step(graph, step_num, step_name):
     visualize_graph(graph, title, filepath)
 
 def break_all_marked_edges(graph):
-    """Pętla łamiąca krawędzie."""
+    """
+    Pętla łamiąca krawędzie.
+    Działa do skutku, aż żadna produkcja P2/P3/P4 nie będzie miała dopasowania.
+    Nie usuwa ręcznie węzłów - polega na produkcjach.
+    """
     p2, p3, p4 = ProductionP2(), ProductionP3(), ProductionP4()
     while True:
         p2_m = p2.find_lhs(graph)
@@ -36,32 +39,20 @@ def break_all_marked_edges(graph):
         if not (p2_m or p3_m or p4_m):
             break
         
-        if p2_m: p2.apply_rhs(graph, p2_m[0])
+        if p2_m: 
+            print(f"    -> P2 na {p2_m[0].uid}")
+            p2.apply_rhs(graph, p2_m[0])
+            continue
         if p3_m: 
-            target = p3_m[0]
-            p3.apply_rhs(graph, target)
-            try: graph.remove_node(target.uid)
-            except: pass
-        if p4_m: p4.apply_rhs(graph, p4_m[0])
+            print(f"    -> P3 na {p3_m[0].uid}")
+            p3.apply_rhs(graph, p3_m[0])
+            continue
+        if p4_m: 
+            print(f"    -> P4 na {p4_m[0].uid}")
+            p4.apply_rhs(graph, p4_m[0])
+            continue
             
     return graph
-
-def force_mark_edges_of_quad(graph, q_uid):
-    """Agresywnie oznacza krawędzie należące do elementu Q."""
-    print(f"  [FORCE MARK] Oznaczam krawędzie dla {q_uid}...")
-    try:
-        vertices = graph.get_hyperedge_vertices(q_uid)
-        v_ids = {v.uid for v in vertices}
-        count = 0
-        for n, d in graph.nx_graph.nodes(data=True):
-            edge = d.get('data')
-            if isinstance(edge, Hyperedge) and edge.label == "E" and edge.r == 0:
-                neighbors = graph.get_hyperedge_vertices(edge.uid)
-                if len(neighbors) == 2 and neighbors[0].uid in v_ids and neighbors[1].uid in v_ids:
-                    edge.r = 1
-                    count += 1
-        print(f"  [FORCE MARK] Oznaczono {count} krawędzi.")
-    except: pass
 
 def run_derivation():
     print("--- START WYWODU GRUPA 5 ---")
@@ -73,22 +64,31 @@ def run_derivation():
     # ========================================================
     print("\n--- KROK 1: Podział P_right ---")
     
+    # 1. P6: Oznaczenie elementu P
     p6 = ProductionP6()
     matches = p6.find_lhs(graph)
     target = next((m for m in matches if m.uid == "P_right"), None)
-    if target: p6.apply_rhs(graph, target)
-    else: graph.update_hyperedge("P_right", r=1)
-    save_step(graph, "01", "Oznaczenie_P_right")
+    if target: 
+        p6.apply_rhs(graph, target)
+    else: 
+        graph.update_hyperedge("P_right", r=1)
+    
+    save_step(graph, "01", "P6_Oznaczenie_P")
 
+    # 2. P7: Oznaczenie krawędzi P
     p7 = ProductionP7()
     matches = p7.find_lhs(graph)
     target = next((m for m in matches if m.uid == "P_right"), None)
-    if target: p7.apply_rhs(graph, target)
-    save_step(graph, "02", "Oznaczenie_Krawedzi_P")
+    if target: 
+        p7.apply_rhs(graph, target)
+        
+    save_step(graph, "02", "P7_Oznaczenie_Krawedzi")
 
+    # 3. Łamanie krawędzi
     break_all_marked_edges(graph)
     save_step(graph, "03", "Po_Lamaniu_P")
 
+    # 4. P8: Podział P
     p8 = ProductionP8()
     matches = p8.find_lhs(graph)
     target_match = None
@@ -99,41 +99,50 @@ def run_derivation():
 
     if target_match:
         p8.apply_rhs(graph, target_match)
-        save_step(graph, "04", "Podzial_P_right")
+        save_step(graph, "04", "P8_Podzial_P_right")
     else:
         print("BŁĄD: P8 nie widzi P_right!")
 
     # ========================================================
-    # KROK 2: Podział Q_top
+    # KROK 2: Podział Q_top (Górny Czworokąt)
     # ========================================================
     print("\n--- KROK 2: Podział Q_top ---")
     
+    # 1. P0: Oznaczenie Q
     graph.update_hyperedge("Q_top", r=1)
-    save_step(graph, "05", "Oznaczenie_Q_top")
+    save_step(graph, "05", "P0_Oznaczenie_Q_top")
     
-    # Używamy force_mark zamiast P1, żeby obsłużyć połamane krawędzie
-    force_mark_edges_of_quad(graph, "Q_top")
-    save_step(graph, "06", "Oznaczenie_Krawedzi_Q_top")
+    # 2. P1: Oznaczenie krawędzi Q
+    p1 = ProductionP1()
+    matches = p1.find_lhs(graph)
+    target = next((m for m in matches if m.uid == "Q_top"), None)
+    
+    if target:
+        print(f"  Zastosowano P1 na {target.uid}")
+        p1.apply_rhs(graph, target)
+    else:
+        print("  UWAGA: P1 nie chwyciło Q_top automatycznie (może geometria?). Próbuję kontynuować.")
+    
+    save_step(graph, "06", "P1_Oznaczenie_Krawedzi")
         
-    print("  Łamanie krawędzi Q_top...")
     break_all_marked_edges(graph)
     save_step(graph, "07", "Po_Lamaniu_Q_top")
     
+    # 4. P5: Podział Q
     p5 = ProductionP5()
     matches = p5.find_lhs(graph)
     target = next((m for m in matches if m.uid == "Q_top"), None)
     if target:
         p5.apply_rhs(graph, target)
-        save_step(graph, "08", "Podzial_Q_top_Gotowy")
+        save_step(graph, "08", "P5_Podzial_Q_top")
     else:
         print("BŁĄD: P5 nie widzi Q_top!")
 
     # ========================================================
-    # KROK 3: Podział sub-Q
+    # KROK 3: Podział sub-Q (Prawy Górny w Q_top)
     # ========================================================
-    print("\n--- KROK 3: Podział sub-Q w Q_top ---")
+    print("\n--- KROK 3: Podział sub-Q ---")
     
-    # Cel: Prawy górny róg Q_top (x>6, y>12.5)
     best_q = None
     for n, d in graph.nx_graph.nodes(data=True):
         obj = d.get('data')
@@ -142,51 +151,66 @@ def run_derivation():
             cx = sum(v.x for v in vs)/len(vs)
             cy = sum(v.y for v in vs)/len(vs)
             if cx > 6.0 and cy > 12.5: 
-                best_q = obj
-                break
+                best_q = obj; break
     
     if best_q:
         print(f"  Wybrano sub-Q: {best_q.uid}")
         graph.update_hyperedge(best_q.uid, r=1)
-        force_mark_edges_of_quad(graph, best_q.uid)
-        break_all_marked_edges(graph)
         
-        matches = p5.find_lhs(graph)
+        matches = p1.find_lhs(graph) # P1
         tgt = next((m for m in matches if m.uid == best_q.uid), None)
-        if tgt: p5.apply_rhs(graph, tgt)
-        save_step(graph, "09", "Podzial_Sub_Q_top")
+        if tgt: p1.apply_rhs(graph, tgt)
+        
+        break_all_marked_edges(graph) # Break
+        
+        matches = p5.find_lhs(graph) # P5
+        tgt = next((m for m in matches if m.uid == best_q.uid), None)
+        if tgt: 
+            p5.apply_rhs(graph, tgt)
+            save_step(graph, "09", "P5_Podzial_Sub_Q")
     else:
-        print("  Nie znaleziono sub-Q!")
+        print("BŁĄD: Nie znaleziono sub-Q!")
 
     # ========================================================
-    # KROK 4: Adaptacja
+    # KROK 4: Adaptacja (Sąsiad z P_right)
     # ========================================================
     print("\n--- KROK 4: Adaptacja ---")
     
-    candidates = []
-    p1 = ProductionP1()
+    target_adapt_point = (11.25, 12.5)
+    cand_q = None
+    min_dist = float('inf')
+
     for n, d in graph.nx_graph.nodes(data=True):
         obj = d.get('data')
         if isinstance(obj, Hyperedge) and obj.label == 'Q' and obj.r == 0:
-            obj.r = 1 
-            if p1.find_lhs(graph, target_id=obj.uid):
-                candidates.append(obj)
-            else:
-                obj.r = 0 
-                
-    if candidates:
-        for cand in candidates:
-            print(f"  Adaptacja: {cand.uid}")
-            force_mark_edges_of_quad(graph, cand.uid)
-            break_all_marked_edges(graph)
-            
-            ms = p5.find_lhs(graph)
-            t = next((m for m in ms if m.uid == cand.uid), None)
-            if t: p5.apply_rhs(graph, t)
-            
-        save_step(graph, "10", "Koncowa_Adaptacja")
+            if str(obj.uid).startswith("Q_P_right"):
+                vs = graph.get_hyperedge_vertices(obj.uid)
+                cx = sum(v.x for v in vs)/len(vs)
+                cy = sum(v.y for v in vs)/len(vs)
+                dist = math.sqrt((cx - target_adapt_point[0])**2 + (cy - target_adapt_point[1])**2)
+                if dist < min_dist:
+                    min_dist = dist
+                    cand_q = obj
+
+    if cand_q:
+        print(f"  Adaptacja elementu: {cand_q.uid}")
+        graph.update_hyperedge(cand_q.uid, r=1)
+        
+        matches = p1.find_lhs(graph)
+        tgt = next((m for m in matches if m.uid == cand_q.uid), None)
+        if tgt: p1.apply_rhs(graph, tgt)
+        
+        break_all_marked_edges(graph)
+        
+        ms = p5.find_lhs(graph)
+        t = next((m for m in ms if m.uid == cand_q.uid), None)
+        if t: 
+            p5.apply_rhs(graph, t)
+            save_step(graph, "10", "Koncowa_Adaptacja")
+        else:
+            print("  BŁĄD: P5 nie zadziałało na adaptowany element.")
     else:
-        print("  Brak elementów wymagających adaptacji.")
+        print("  Brak elementu do adaptacji.")
 
     print("--- KONIEC ---")
 
